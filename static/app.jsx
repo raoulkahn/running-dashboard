@@ -585,7 +585,7 @@ function App(){
           <PulseIcon size={22} color={accent}/>
         </div>
         <div>
-          <h1 style={{margin:0,fontSize:30,fontWeight:700,letterSpacing:"-0.02em"}}>Running Dashboard</h1>
+          <h1 style={{margin:0,fontSize:30,fontWeight:700,letterSpacing:"-0.02em"}}>AI Run Partner</h1>
           <div style={{fontSize:16,color:t.dim,marginTop:3,fontWeight:500}}>{demoMode?(APP_MODE==="demo"?"Interactive demo":"Demo mode"):connected?"Live from Strava":"Connecting to Strava\u2026"}</div>
         </div>
       </div>
@@ -692,7 +692,7 @@ function App(){
             <div style={{display:"flex",justifyContent:"space-between",gap:4}}>
               {w.days.map((d,j)=><div key={j} style={{textAlign:"center",flex:1}}>
                 <div style={{fontSize:13,color:t.dim,fontWeight:500}}>{d.d}</div>
-                <div style={{width:18,height:18,borderRadius:"50%",background:d.mi>0?accent2+"77":"transparent",border:d.mi>0?"none":`1px solid ${t.dim}44`,margin:"5px auto"}}/>
+                <div style={{width:18,height:18,borderRadius:"50%",background:d.mi>0?accent+"77":"transparent",border:d.mi>0?"none":`1px solid ${t.dim}44`,margin:"5px auto"}}/>
                 {d.mi>0&&<div style={{fontSize:13,color:t.dimBright}}>{d.mi}</div>}
               </div>)}
             </div>
