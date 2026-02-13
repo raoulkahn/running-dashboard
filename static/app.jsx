@@ -483,7 +483,7 @@ function App(){
   const t=THEMES[themeKey];
   const accent=t.accent;
   const accent2=t.accent2||t.accent;
-  const totalMi=demoMode?26.2:liveTotalMi, goalMi=demoMode?50:liveGoalMi;
+  const totalMi=demoMode?26.2:liveTotalMi, goalMi=demoMode?(liveGoalMi||50):liveGoalMi;
   const resolvedWeekDays=demoMode?WEEK_DAYS:(liveWeekDays||WEEK_DAYS);
   const resolvedPastWeeks=demoMode?PAST_WEEKS:(livePastWeeks||PAST_WEEKS);
   const resolvedShoes=demoMode?ALL_SHOES:(liveProfile?liveProfile.shoes:ALL_SHOES);
@@ -664,7 +664,7 @@ function App(){
             </div>
             {goalMi>0&&<div style={{fontSize:26,fontWeight:700,letterSpacing:"-0.02em"}}>{totalMi} <span style={{color:t.dim,fontWeight:400,fontSize:17}}>/ {goalMi} mi</span></div>}
           </div>
-          {editGoal&&(()=>{const saveGoal=()=>{const v=parseFloat(goalInput)||0;if(demoMode){setEditGoal(false);return;}fetch("/api/settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({goalMi:v})}).then(()=>{setLiveGoalMi(v);setEditGoal(false);setLoadingAssistant(true);fetch("/api/assistant?refresh=1").then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(d=>{if(d.error)throw new Error(d.error);setAssistantMsg(d.message);}).catch(()=>{}).finally(()=>setLoadingAssistant(false));}).catch(()=>{});};return <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
+          {editGoal&&(()=>{const saveGoal=()=>{const v=parseFloat(goalInput)||0;if(demoMode){setLiveGoalMi(v);setEditGoal(false);return;}fetch("/api/settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({goalMi:v})}).then(()=>{setLiveGoalMi(v);setEditGoal(false);setLoadingAssistant(true);fetch("/api/assistant?refresh=1").then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(d=>{if(d.error)throw new Error(d.error);setAssistantMsg(d.message);}).catch(()=>{}).finally(()=>setLoadingAssistant(false));}).catch(()=>{});};return <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
             <input type="number" value={goalInput} onChange={e=>setGoalInput(e.target.value)} placeholder="Miles" min="0" style={{width:80,padding:"6px 10px",borderRadius:8,border:`1px solid ${t.border}`,background:t.input,color:t.text,fontSize:15,fontFamily:fontStack,outline:"none"}} autoFocus onKeyDown={e=>{if(e.key==="Enter")saveGoal();if(e.key==="Escape")setEditGoal(false);}}/>
             <span style={{fontSize:14,color:t.dim}}>mi</span>
             <button onClick={saveGoal} style={{padding:"6px 14px",borderRadius:8,border:"none",background:accent,color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:fontStack}}>Save</button>
