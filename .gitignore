@@ -1,0 +1,11 @@
+.env
+tokens.json
+user_settings.json
+run_types.json
+assistant_cache.json
+geo_cache.json
+__pycache__/
+*.pyc
+.DS_Store
+venv/
+.venv/
