@@ -6,8 +6,12 @@ Returns data shaped to match the wireframe WEATHER constant.
 
 import time
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from config import OPENWEATHER_API_KEY
+
+# Both locations are in California
+LOCAL_TZ = ZoneInfo("America/Los_Angeles")
 
 # ---------------------------------------------------------------------------
 # Locations
@@ -104,7 +108,7 @@ def get_hourly_forecast(location="concord"):
     resp.raise_for_status()
     raw = resp.json()
 
-    now = datetime.now()
+    now = datetime.now(LOCAL_TZ)
     hourly = raw.get("hourly", [])
     hours = []
 
@@ -113,7 +117,7 @@ def get_hourly_forecast(location="concord"):
         period = "tomorrow"
         tomorrow = now.date() + timedelta(days=1)
         for item in hourly:
-            dt = datetime.fromtimestamp(item["dt"])
+            dt = datetime.fromtimestamp(item["dt"], tz=LOCAL_TZ)
             if dt.date() != tomorrow:
                 continue
             if dt.hour < 6 or dt.hour > 18:
@@ -124,7 +128,7 @@ def get_hourly_forecast(location="concord"):
         period = "today"
         cutoff = now + timedelta(hours=12)
         for item in hourly:
-            dt = datetime.fromtimestamp(item["dt"])
+            dt = datetime.fromtimestamp(item["dt"], tz=LOCAL_TZ)
             if dt < now:
                 continue
             if dt > cutoff:
@@ -167,13 +171,13 @@ def get_48h_forecast(location="concord"):
     except Exception:
         return []
 
-    now = datetime.now()
+    now = datetime.now(LOCAL_TZ)
     today = now.date()
     tomorrow = today + timedelta(days=1)
     hours = []
 
     for item in raw.get("hourly", []):
-        dt = datetime.fromtimestamp(item["dt"])
+        dt = datetime.fromtimestamp(item["dt"], tz=LOCAL_TZ)
         if dt.date() == today and dt >= now:
             hours.append(_format_item(item, dt, day_offset=0))
         elif dt.date() == tomorrow and 6 <= dt.hour <= 18:
