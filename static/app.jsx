@@ -334,7 +334,7 @@ function MapModal({ polyline, accent, t, onClose }) {
   </div>;
 }
 
-const APP_MODE = window.__APP_MODE__ || "development";
+const APP_MODE = (()=>{const p=new URLSearchParams(window.location.search).get("mode");return(p==="personal"||p==="demo"||p==="development")?p:(window.__APP_MODE__||"development");})();
 
 function App(){
   const [themeKey,setThemeKey]=useState("ocean");
@@ -353,6 +353,7 @@ function App(){
   const [editGoal,setEditGoal]=useState(false);
   const [goalInput,setGoalInput]=useState("");
   const [expandedNotes,setExpandedNotes]=useState({});
+  const [demoBannerDismissed,setDemoBannerDismissed]=useState(false);
 
   const [favoriteShoes,setFavoriteShoes]=useState([]);
 
@@ -559,7 +560,7 @@ function App(){
         </div>
         <div>
           <h1 style={{margin:0,fontSize:30,fontWeight:700,letterSpacing:"-0.02em"}}>Running Dashboard</h1>
-          <div style={{fontSize:16,color:t.dim,marginTop:3,fontWeight:500}}>{demoMode?(APP_MODE==="demo"?"Interactive demo":"Demo mode \u2014 sample data"):connected?"Live from Strava":"Connecting to Strava\u2026"}</div>
+          <div style={{fontSize:16,color:t.dim,marginTop:3,fontWeight:500}}>{demoMode?(APP_MODE==="demo"?"Interactive demo":"Demo mode"):connected?"Live from Strava":"Connecting to Strava\u2026"}</div>
         </div>
       </div>
       <div style={{display:"flex",gap:14,alignItems:"center"}}>
@@ -616,6 +617,12 @@ function App(){
 
       {/* LEFT */}
       <div style={{display:"flex",flexDirection:"column",gap:20,minWidth:0}}>
+
+        {/* Demo info banner */}
+        {demoMode&&!demoBannerDismissed&&<div style={{background:accent+"0c",border:`1px solid ${accent}20`,borderRadius:10,padding:"10px 14px",display:"flex",alignItems:"flex-start",gap:10}}>
+          <div style={{fontSize:14,color:t.text,lineHeight:1.5,flex:1,opacity:0.85}}>This is an interactive demo. Activities, profile, and shoes are sample data. The full version connects to Strava API for real-time running data, with live weather (OpenWeatherMap), AI coaching (Claude API), and fitness metrics synced from Garmin.</div>
+          <button onClick={()=>setDemoBannerDismissed(true)} style={{background:"none",border:"none",color:t.dim,fontSize:15,cursor:"pointer",padding:"0 2px",fontFamily:fontStack,lineHeight:1,flexShrink:0}}>✕</button>
+        </div>}
 
         {/* AI Assistant */}
         {loadingAssistant?<LoadingCard t={t} rows={2} label="AI ASSISTANT"/>:<div style={{...crd,background:`linear-gradient(135deg,${t.card},${t.card2})`,borderColor:accent2+"30"}}>
