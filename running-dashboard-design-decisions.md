@@ -1,4 +1,4 @@
-# Running Dashboard — Design Decisions
+# AI Run Partner — Design Decisions
 
 ## Architecture
 
@@ -25,17 +25,30 @@
 
 ## Frontend Decisions
 
-### Theme system (10 themes: 5 dark + 5 light)
-- Every theme defines: `accent`, `accent2`, `bg` (gradient), `card`, `card2`, `border`, `input`, `text`, `dim`, `dimBright`, `swatch`
-- Dark themes: Ocean (default), Strava, Forest, Midnight, Slate
-- Light themes: Minimal Gray, Ocean Light, Forest Light, Sunset Light, Strava Light
+### Theme system (15 themes: 5 dark + 5 mid-tone + 5 light)
+- Every theme defines: `tint`, `accent`, `accent2`, `bg` (gradient), `card`, `card2`, `border`, `input`, `text`, `dim`, `dimBright`, `swatch`
+- `tint` — representative color for the theme picker swatch (card color for dark, pastel for mid, gradient mid-stop for light)
+- `accent` + `accent2` — two-tone complementary colors (e.g. blue+gold, cyan+coral, orange+teal, purple+gold)
+- Dark themes: Midnight, Ocean Dark, Strava Dark, Forest Dark, Slate
+- Mid-tone themes (soft muted pastels): Storm (sky blue), Twilight (lavender), Fog (sage), Ember (peach), Dusk (mauve)
+- Light themes: Strava Light, Ocean Light, Forest Light, Sunset Light, Minimal Gray
+- Mid-tone themes designed like Daily To Do app: Rose Gold (peach), Forest Green (mint), Ocean Blue (sky blue) — muted, atmospheric, easy on the eyes
 - All UI text reads from `t.text`, `t.dim`, `t.dimBright` — no hardcoded colors
-- Background uses CSS gradient string (`bg` field) — subtle depth
-- Theme picker has Dark/Light separator labels
+- `accent` used for body text accents (location, weather headers); `accent2` reserved for decorative fills (card borders, bubble fills)
+- Background uses CSS gradient string (`bg` field) — 3-stop gradient with visible tint variation
 - Strava dark theme uses neutral dark surfaces (#141418) — only accents are orange
 - Top-level components (ShoeIcon, MapPinIcon, Gauge) accept color props since `t` isn't in scope
 - `B` constant only holds accent palette colors (green, cyan, gold, coral, lavender)
 - Original 7-theme backup preserved as comment block in app.jsx
+
+### Theme picker (Daily To Do app style)
+- **Neutral background**: Fixed white (#ffffff) with dark text — theme-independent, always readable
+- **Single column list**: Each row has two horizontal color rectangles + theme name + checkmark
+- **Color rectangles**: Left = `th.tint` (card/bg feel), Right = `th.accent` (primary accent) — 28×20px rounded rectangles
+- **Active theme indicator**: Accent-colored 2px border + accent-tinted background fill + accent-colored checkmark SVG
+- **Stays open on selection**: Clicking a theme applies it but keeps picker open for previewing; closes on toggle button click or click-outside
+- **No scrolling**: All 15 themes visible without scrolling
+- **Strong contrast**: Double box-shadow + solid border so picker doesn't bleed into any theme background
 
 ### APP_MODE system
 - `APP_MODE` env var controls frontend behavior: `development`, `personal`, `demo`
@@ -78,7 +91,27 @@
 - "Edit" link if goal exists, "+ Set Weekly Goal" if no goal
 - Inline number input with Save/Cancel
 - Saving goal triggers AI assistant refresh (?refresh=1) since coaching context changed
-- Demo mode: edit UI works but no POST call — state only
+- Demo mode: edit UI works — updates `liveGoalMi` state (no POST call)
+- `goalMi` in demo mode reads from `liveGoalMi||50` so edits take effect immediately
+
+### Animations
+- **Staggered fade-slide-in**: `@keyframes fadeSlideIn` on each section with delays (0–400ms)
+- **Progress bar fill**: `mounted` state flips after 100ms; bars render at 0% width initially, then animate to actual via `transition:"width 0.6s ease"`
+- **Card hover**: `.card-hover` class — `scale(1.008)` + soft box-shadow on hover, 0.3s ease-in-out
+- **DockDay tooltips**: Hover a filled day bubble to see run title, distance, and pace
+- **Loading skeleton**: Shimmer gradient animation on placeholder cards during data fetch
+
+### Demo data
+- Profile: "DJ Run", Concord, CA
+- 16 shoes with mileage (show 7 default, rest hidden behind "Show all")
+- 5 activities with real Strava polylines, notes/descriptions, run types
+- Past weeks with daily breakdown
+- Weather and AI assistant fetch live data even in demo mode
+
+### Open Graph & SEO
+- `<title>AI Run Partner</title>`
+- OG tags: title, description, url, type, image
+- `og:image` served from `/static/og-image.png`
 
 ### Route maps (Leaflet.js)
 - **Card map**: Full-width x 300px, non-interactive, click opens fullscreen
@@ -91,10 +124,9 @@
 - Map container uses wrapper div with `overflow:hidden` + `borderRadius` to prevent white corner bleed
 - Background color `#e8e0d8` matches Voyager tile tone for seamless loading
 - Polyline decoded from Google Encoded Polyline format (Strava's `summary_polyline`)
-- Demo mode includes 3 polylines in Concord/Pleasant Hill/Walnut Creek area:
-  - Iron Horse Trail out-and-back (65 points, ~6.5mi)
-  - Downtown Concord neighborhood grid loop (55 points, ~4.5mi)
-  - Long multi-turn route through Monument/Treat/Ygnacio/Contra Costa (134 points, ~13mi)
+- Demo mode includes 5 real Strava GPS polylines (fetched from live API, not synthetic):
+  - `_POLY_LONG` (20mi, 1172 chars), `_POLY_MED` (10mi, 856 chars), `_POLY_SHORT` (1mi, 92 chars), `_POLY_LOOP` (7mi, 824 chars), `_POLY_OUT` (3mi, 239 chars)
+- Map expanded 30% larger than original, green start marker restored
 - If no polyline data: shows MapPinIcon placeholder
 
 ### Activity cards
@@ -105,7 +137,7 @@
 - Splits table: scrollable when > 8 splits, partial final split shown at reduced opacity
 
 ### Weather widget
-- Day headers use `accent2` color with dynamic day names (THURSDAY, FRIDAY, etc.)
+- Day headers use `accent` color with dynamic day names (THURSDAY, FRIDAY, etc.)
 - Two locations: Concord / Danville toggle
 - Period logic: Before 6 PM shows today's next 12 hours; after 6 PM shows tomorrow 6 AM–6 PM
 - Weather data includes `dayOffset` field for grouping hours by day
@@ -241,3 +273,26 @@
 ### .env append without newline
 - `echo "KEY=value" >> .env` can concatenate with previous line if file doesn't end with newline
 - Always verify .env contents after appending
+
+### Use real API data from day 1
+- Synthetic polylines looked wrong and caused debugging confusion
+- Fetching real Strava polylines from `/api/activities` immediately solved map rendering issues
+- Don't generate fake data when real data is available via API
+
+### Peer review should include UX audit
+- Disabled buttons, form validation, empty states, and visual consistency are easy to miss
+- A `/ux-audit` command would catch patterns that code review misses
+- Always test theme changes across all 15 themes (dark + mid + light)
+
+### Use Figma/screenshots for UI spacing
+- Annotated screenshots reduce back-and-forth on pixel-level adjustments
+- "Match the Daily To Do app" is more effective than describing layout in words
+
+### Theme changes are high-effort
+- Break theme overhauls into small focused prompts (colors, picker, mid-tones separately)
+- Big prompts with 6+ sub-items cause Claude Code to think too long or stall
+- Batch changes by dependency: THEMES object first, then picker UI, then usage sites
+
+### Always verify API data in preflight
+- Before building features that depend on API data (polylines, splits, shoe mileage), verify the data exists and has the expected shape
+- Strava's `summary_polyline` can be null for treadmill/indoor runs

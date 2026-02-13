@@ -1,9 +1,10 @@
-# Running Dashboard — CLAUDE.md
+# AI Run Partner — CLAUDE.md
 
 ## Project
 Personal running dashboard pulling live data from Strava API.
 Flask backend + React frontend (single-page, inline styles).
 **Live demo**: https://ai-run-partner.onrender.com
+**Repo**: https://github.com/raoulkahn/running-dashboard
 
 ## Stack
 - Backend: Python 3.9+, Flask, requests, gunicorn
@@ -42,13 +43,32 @@ Flask backend + React frontend (single-page, inline styles).
 1. ✅ **Phase 1: Strava API Integration** — OAuth, profile, activities, weeks, settings
 2. ✅ **Phase 2: Frontend Polish** — Theme system, route maps, activity cards, splits
 3. ✅ **Phase 3: Weather + Shoes** — OpenWeatherMap, shoe tracker, favorites
-4. ✅ **Phase 4: AI Assistant** — Claude API coaching, mode detection, caching, context
-5. ✅ **Deployment** — Render, APP_MODE, timezone fix, demo mode
+4. ✅ **Phase 4: AI Assistant** — Claude Sonnet API coaching, mode detection (pre_run/post_run/rest_day/evening_no_run), caching, safety guardrails, weather-aware planning, 48hr forecast context
+5. ✅ **Phase 5: Deployment** — Render, APP_MODE (demo/personal/development), URL param override, timezone fix, OG meta tags + og:image
 
-## Remaining Polish
-- Demo polylines — current routes are geometric; replace with road-traced GPX
-- Map cleanup — loading placeholder, error states for missing tiles
-- Loading animation — skeleton screens for initial page load
+## Post-Launch Polish (Completed)
+- App renamed from "Running Dashboard" to "AI Run Partner"
+- Theme system: 15 themes (5 dark, 5 mid-tone pastel, 5 light), two-tone complementary accent colors
+- Neutral theme picker: white background, horizontal color rectangles (tint + accent), accent-colored selection border + checkmark, stays open for previewing
+- Real Strava polylines for demo maps (replaced synthetic data)
+- Demo data: DJ Run profile, 16 shoes (show 7 default), activity notes/descriptions
+- Hover animations (.card-hover), loading skeleton shimmer, day bubble tooltips
+- Staggered fade-slide-in on page load, progress bar fill animation
+- Weekly goal edit works in demo mode (state-only, no POST)
+- Expanded map 30% larger, green start marker restored
+- Splits: show 8 visible, hide last split if < 0.1 miles
+- Demo info banner (dismissable)
+- Past weeks day bubbles use accent color (matching current week)
+- Peer review fixes: divide-by-zero guards, null split handling, stale state cleanup, unused state removed
+
+## Backlog
+- Past weeks hover animation (not working)
+- Save Plan button disabled until changes made
+- Weather widget individual row cards (Figma style)
+- Background gradient more visible
+- V2: multi-user auth, Cycling/Zwift support
+- Mobile responsive design
+- Custom theme color picker
 
 ## APP_MODE System
 Environment variable `APP_MODE` controls frontend behavior:
