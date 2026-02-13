@@ -270,7 +270,7 @@ function App(){
   const resolvedWeekDays=demoMode?WEEK_DAYS:(liveWeekDays||WEEK_DAYS);
   const resolvedPastWeeks=demoMode?PAST_WEEKS:(livePastWeeks||PAST_WEEKS);
   const resolvedShoes=demoMode?ALL_SHOES:(liveProfile?liveProfile.shoes:ALL_SHOES);
-  const resolvedName=demoMode?"Raoul Kahn":(liveProfile?liveProfile.name:"\u2014");
+  const resolvedName=demoMode?"DJ Run":(liveProfile?liveProfile.name:"\u2014");
   const resolvedLocation=demoMode?"Concord, CA":(liveProfile?[liveProfile.city,liveProfile.state].filter(Boolean).join(", "):"\u2014");
   const resolvedYtdMiles=demoMode?198.7:(liveProfile?liveProfile.ytd_miles:0);
   const resolvedWeather=demoMode?WEATHER:(liveWeather||WEATHER);

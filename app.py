@@ -18,6 +18,7 @@ import assistant_client
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.secret_key = FLASK_SECRET_KEY
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 
 # User settings file (single-user personal app)
 SETTINGS_FILE = "user_settings.json"
@@ -223,7 +224,7 @@ def api_assistant():
                 {"type": "Interval Run", "count": 1},
                 {"type": "Tempo Run", "count": 0},
             ]
-            profile = {"name": "Raoul Kahn", "city": "Concord", "state": "CA"}
+            profile = {"name": "DJ Run", "city": "Concord", "state": "CA"}
         else:
             # Live mode — gather context from Strava
             settings = load_settings()
