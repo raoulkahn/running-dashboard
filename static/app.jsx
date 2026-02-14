@@ -651,7 +651,7 @@ function App(){
         <div style={anim(100)}>{loadingAssistant?<LoadingCard t={t} rows={2} label="AI ASSISTANT"/>:<div className="card-hover" style={{...crd,background:`linear-gradient(135deg,${t.card},${t.card2})`,borderColor:accent2+"30"}}>
           <div style={{...lbl,marginBottom:8}}>AI ASSISTANT</div>
           <div style={{fontSize:18,lineHeight:1.6,fontWeight:400,color:t.text+"ee"}}>
-            {(()=>{const raw=assistantMsg||"You've logged 26.2 of your 50-mile goal this week with 3 runs in the books. It's clearing up to 58\u00b0F and sunny by noon \u2014 a good window for that interval run you still have on the plan. An 8-miler today would keep you right on pace heading into the weekend.";const lines=raw.split("\n");const intro=[];const bullets=[];let inBullets=false;lines.forEach(l=>{const trimmed=l.trim();if(/^[-\u2022\*]\s/.test(trimmed)){inBullets=true;bullets.push(trimmed.replace(/^[-\u2022\*]\s+/,""));}else if(trimmed){if(!inBullets)intro.push(trimmed);else bullets.push(trimmed);}});if(bullets.length===0)return raw;return React.createElement(React.Fragment,null,intro.length>0&&React.createElement("div",{style:{marginBottom:10}},intro.join(" ")),React.createElement("ul",{style:{margin:0,paddingLeft:20,listStyleType:"disc"}},bullets.map((b,i)=>React.createElement("li",{key:i,style:{marginBottom:4}},b))));})()}
+            {assistantMsg||"You've logged 26.2 of your 50-mile goal this week with 3 runs in the books. It's clearing up to 58\u00b0F and sunny by noon \u2014 a good window for that interval run you still have on the plan. An 8-miler today would keep you right on pace heading into the weekend."}
           </div>
         </div>}</div>
 
