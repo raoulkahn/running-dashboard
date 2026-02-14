@@ -8,7 +8,7 @@ import json
 import os
 import time
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 from config import ANTHROPIC_API_KEY
 
 CACHE_FILE = "assistant_cache.json"
@@ -28,6 +28,7 @@ SYSTEM_PROMPT = """You are a friendly running coach assistant for a personal run
 
 MODE RULES:
 - Be specific — reference actual numbers, weather, and plan items
+- Activities are labeled "This week's runs" (current Mon-Sun) vs "previous-week run" — ONLY reference this week's runs when discussing the current week. Never describe a previous-week run as happening "this week" or "earlier this week"
 - Pre-run: focus on what to run today, best time based on weather, weekly goal pacing
 - Post-run: acknowledge the run, give recovery tips (hydrate, stretch, strength training, nutrition). Don't mention weather.
 - Rest day: acknowledge rest, preview tomorrow's weather, encourage recovery activities
@@ -165,14 +166,49 @@ def build_context(activities, week_summary, weather, plan, profile, goal_mi=None
         if remaining:
             parts.append(f"Remaining plan items: {', '.join(remaining)}")
 
-    # Most recent activity
+    # Split activities into this week vs previous using Mon-Sun boundaries
     if activities and len(activities) > 0:
-        a = activities[0]
-        parts.append(
-            f"Most recent run: {a.get('title', 'Run')} — "
-            f"{a.get('distance', '?')} in {a.get('time', '?')} "
-            f"at {a.get('pace', '?')} pace"
-        )
+        monday = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        monday -= timedelta(days=now.weekday())  # weekday() 0=Mon
+        this_week_acts = []
+        prev_acts = []
+        for a in activities:
+            sdl = a.get("start_date_local", "")
+            if sdl:
+                try:
+                    act_date = datetime.strptime(sdl[:10], "%Y-%m-%d")
+                    if act_date >= monday:
+                        this_week_acts.append(a)
+                    else:
+                        prev_acts.append(a)
+                except ValueError:
+                    prev_acts.append(a)
+            else:
+                prev_acts.append(a)
+
+        if this_week_acts:
+            runs_desc = "; ".join(
+                f"{a.get('title', 'Run')} ({a.get('distance', '?')}, {a.get('pace', '?')})"
+                for a in this_week_acts[:5]
+            )
+            parts.append(f"This week's runs: {runs_desc}")
+        else:
+            parts.append("No runs yet this week.")
+
+        if prev_acts:
+            a = prev_acts[0]
+            sdl = a.get("start_date_local", "")
+            date_label = ""
+            if sdl:
+                try:
+                    date_label = f" on {datetime.strptime(sdl[:10], '%Y-%m-%d').strftime('%A %b %-d')}"
+                except ValueError:
+                    pass
+            parts.append(
+                f"Most recent previous-week run: {a.get('title', 'Run')} — "
+                f"{a.get('distance', '?')} in {a.get('time', '?')} "
+                f"at {a.get('pace', '?')} pace{date_label}"
+            )
 
     # Weather summary — split into today (dayOffset=0) and tomorrow (dayOffset=1)
     if weather and len(weather) > 0:
