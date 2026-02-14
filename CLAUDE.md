@@ -62,6 +62,52 @@ Flask backend + React frontend (single-page, inline styles).
 - Peer review fixes: divide-by-zero guards, null split handling, stale state cleanup, unused state removed
 
 ## Backlog
+
+### Cross-Training Activity Support (MVP)
+- Stop filtering out non-run activities from Strava API responses
+- Display rides and strength training entries on the main page alongside runs
+- Card layout per activity type: runs (existing), rides (distance/calories/time), strength (duration/notes from description field)
+- Add cross-training "types" similar to run types — strength categories (e.g., Chest & Arms, Back & Shoulders, Legs) with note fields for context
+- AI assistant awareness: pass all activity types into build_context() so it can suggest what's missing (e.g., "no upper body this week"). Keep suggestions conservative — these are reminders, not plans
+- Personal/live environment only for now
+- Branching strategy TBD — will develop on feature branch, main stays stable for public demo
+
+### AI Eval Framework / Scenario Stress Tester (Detailed Scope)
+
+Build order and estimates:
+
+1. **Scenario Generator (~half day)** — Script that generates 100-200+ scenario combinations as JSON. Input variables: day of week, time of day, runs logged today (0/1/2+), total miles today, total miles this week, weekly mileage goal, run types planned, run types completed, most recent run (date/distance/pace), weather today (temp/rain%/wind), weather tomorrow, days remaining in week. Mix of manual edge cases and random generation.
+
+2. **Test Runner (~few hours)** — Loop that takes each scenario, formats it the same way build_context() does, sends through the actual AI assistant prompt, collects responses.
+
+3. **Rule Evaluator (~few hours)** — Second Claude API call per scenario. Grades each message against these rules:
+   - If run logged today → never suggest another run
+   - If remaining days have bad weather → don't push weekly goal
+   - Never reference a run older than 3 days
+   - Never guilt-trip about missed mileage
+   - Never suggest more than 15 miles in one day unless recently done
+   - If goal hit → suggest rest/cross-training, not more running
+   - Opening line is one sentence with today's activity and weekly progress
+   - Multiple runs today → reference total only
+   - Max 3 bullets, each actionable and non-obvious
+   - No filler (sleep, hydration, stretching, pace analysis, generic encouragement)
+   - No emojis
+   - Correct day/date awareness, no contradictions
+   - Every 3 days without weighing in, remind to weigh in if bullet space allows
+   Returns structured pass/fail per rule.
+
+4. **Results Dashboard (~half day to day)** — Shows overall pass rate, failures grouped by rule, click into failure to see scenario + message + violation.
+
+5. **Re-run Capability (~couple hours)** — Change prompt, re-run all scenarios, compare before/after pass rates with timestamps.
+
+Total estimate: 2-3 days. API cost: ~400 Claude API calls per run (200 scenarios × 2 calls), a few dollars on Sonnet per run. Personal/dev environment only. Future-proof: placeholder variables for strength training and cycling activity types. Also serves as portfolio piece demonstrating AI quality assurance and eval methodology.
+
+### Weekly Goal Celebration Animation
+- When weekly mileage goal is reached, trigger a celebration animation in the weekly goal progress bar area (confetti, fireworks, or similar effect)
+- Bar should visually animate filling to 100% before the celebration triggers
+- Personal and demo app
+
+### Other
 - Past weeks hover animation (not working)
 - Save Plan button disabled until changes made
 - Weather widget individual row cards (Figma style)
@@ -69,6 +115,15 @@ Flask backend + React frontend (single-page, inline styles).
 - V2: multi-user auth, Cycling/Zwift support
 - Mobile responsive design
 - Custom theme color picker
+
+## Development Rules
+Before building any new feature or substantial change, always assess and communicate:
+- Which app(s) it affects (personal only, demo only, or both)
+- Merge risks if the feature branch diverges significantly from main
+- Whether it should be personal-only first or rolled out to both apps
+- Any shared code (routing, assistant_client, CSS/layout) that could break the other environment
+
+This applies to all feature discussions, not just implementation.
 
 ## APP_MODE System
 Environment variable `APP_MODE` controls frontend behavior:

@@ -9,7 +9,10 @@ import os
 import time
 import requests
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from config import ANTHROPIC_API_KEY
+
+_TZ = ZoneInfo("America/Los_Angeles")
 
 CACHE_FILE = "assistant_cache.json"
 CLAUDE_MODEL = "claude-sonnet-4-20250514"
@@ -24,35 +27,46 @@ CACHE_TTL = {
     "evening_no_run": 86400,
 }
 
-SYSTEM_PROMPT = """You are a friendly running coach assistant for a personal running dashboard. Generate a 2-3 sentence coaching insight based on the provided context.
+SYSTEM_PROMPT = """You are a casual running buddy giving a quick check-in on a personal running dashboard.
 
-MODE RULES:
-- Be specific — reference actual numbers, weather, and plan items
-- Activities are labeled "This week's runs" (current Mon-Sun) vs "previous-week run" — ONLY reference this week's runs when discussing the current week. Never describe a previous-week run as happening "this week" or "earlier this week"
-- Pre-run: focus on what to run today, best time based on weather, weekly goal pacing
-- Post-run: acknowledge the run, give recovery tips (hydrate, stretch, strength training, nutrition). Don't mention weather.
-- Rest day: acknowledge rest, preview tomorrow's weather, encourage recovery activities
-- Evening no run: gentle encouragement for tomorrow, preview morning weather
-- Keep tone motivational but not cheesy. Be concise.
-- Do NOT use emojis.
+FORMAT:
+- One opening sentence about the day and week. If multiple runs logged today, reference total daily mileage only — don't list individually or call any a "warm-up." Don't sound like they just finished.
+- Then 1-3 bullets using "- " prefix. Every bullet must be actionable and non-obvious. Nothing after the bullets.
+- No emojis.
 
-SAFETY RULES:
-- Never suggest running more than 15 miles in a single day unless the user has recently completed a run of that distance
-- If the remaining weekly goal is unrealistic for the days left (e.g. 30+ miles in 1-2 days), acknowledge it's a tough week and suggest a reasonable alternative instead of pushing to hit the full goal
-- If the user hasn't run in 3+ days, or this week's mileage is significantly lower than previous weeks, suggest easing back in gradually rather than aggressive catch-up
-- If weather has been bad most of the week (rain, extreme cold/heat) and mileage is low, acknowledge weather as a factor and don't guilt-trip about missed miles
-- Never recommend making up a large mileage deficit in 1-2 days
-- Prioritize injury prevention and sustainable training over hitting arbitrary weekly numbers
+DAY AWARENESS:
+- The context tells you what day it is (e.g. "Today is Saturday"). Use it. If you say "tomorrow" and today is Saturday, tomorrow is Sunday. Never contradict yourself — don't say "rest tomorrow" then suggest running on the same day.
 
-WEATHER-AWARE PLANNING:
-- Use the full 48-hour weather forecast (today + tomorrow) to give forward-looking advice
-- If tomorrow's weather is bad but today is good, suggest getting remaining miles in today: "Tomorrow looks rainy — might be worth knocking out your remaining X miles today while conditions are good"
-- If today is bad but tomorrow is good, suggest waiting: "Rainy today but tomorrow looks clear — good day to rest and hit it fresh in the morning"
-- Always reference specific weather data (temp, rain chance, wind) when making recommendations
+NEVER MENTION:
+- Sleep, hydration, refueling, stretching, foam rolling, "listen to your body"
+- Generic encouragement ("great job", "keep it up", "you're on track")
+- Pace analysis or fitness commentary — the user can see their own numbers
+- NEVER reference any specific past run by distance or name if it was more than 3 days ago. No exceptions. No "your 20-miler last week", no "that long run is still in your legs." Only reference runs from the last 3 days.
 
-POST-GOAL COMPLETION:
-- If the user has already hit their weekly mileage goal AND completed all planned run types, celebrate it briefly then suggest recovery and cross-training activities: rest and recovery, strength training, indoor cycling (Zwift) for low-impact cardio, stretching and mobility work. Don't suggest more running — the plan is done, protect the body.
-- If mileage goal is hit but some run types remain, gently note which types are left but don't pressure — the volume is already there."""
+ONE RUN PER DAY:
+- The context includes a "RAN TODAY" field. If it says "Yes", the user has already run today. NEVER suggest running more today — no "consider a longer run today", no "get miles in today if you're feeling good", no splits, no shakeouts. Today is done. This overrides everything else.
+
+WEEK BOUNDARIES:
+- "This week's runs" = current Mon-Sun. "Previous-week run" = last week. Never mix them up.
+
+WEATHER:
+- Reference specific temps, rain chance, wind when relevant.
+- Rain tomorrow = rest day. Don't push running in bad weather to hit mileage.
+- Only suggest "get miles in today" if no run logged today AND tomorrow is bad.
+
+MILEAGE — BE HONEST:
+- If the user already ran today and remaining days have bad weather, do NOT mention how many miles are left. The dashboard already shows that. Just suggest rest and move on.
+- If the weekly goal is clearly out of reach, say "lighter week, that's fine" and move on. Don't manufacture a plan to squeeze in miles.
+- Never frame remaining mileage as something to "tackle", "make up", or "salvage." Missing weekly mileage is not a failure.
+- Never guilt-trip about missed miles. It's fine.
+- Never suggest more than 15 miles in one day unless they've recently done that distance.
+
+WEIGH-IN REMINDER:
+- If today is Monday, Thursday, or Sunday and there are fewer than 3 bullets, add one: "Good day to step on the scale and check in."
+
+GOAL COMPLETE:
+- Weekly goal hit + all run types done: note briefly, suggest strength or cycling (Zwift). No more running.
+- Goal hit but some types remain: mention what's left without pressure."""
 
 
 def _load_cache():
@@ -76,7 +90,7 @@ def detect_mode(activities, plan=None):
     activities: list of activity dicts with start_date_local
     plan: list of plan items with type and count (optional)
     """
-    now = datetime.now()
+    now = datetime.now(_TZ)
     today_str = now.strftime("%Y-%m-%d")
 
     has_run_today = False
@@ -134,7 +148,7 @@ def _is_cache_valid(cache, mode, activities):
 
 def build_context(activities, week_summary, weather, plan, profile, goal_mi=None):
     """Build context string for the Claude prompt."""
-    now = datetime.now()
+    now = datetime.now(_TZ)
     day_name = now.strftime("%A")
     time_str = now.strftime("%-I:%M %p")
 
@@ -168,15 +182,14 @@ def build_context(activities, week_summary, weather, plan, profile, goal_mi=None
 
     # Split activities into this week vs previous using Mon-Sun boundaries
     if activities and len(activities) > 0:
-        monday = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        monday -= timedelta(days=now.weekday())  # weekday() 0=Mon
+        monday = (now - timedelta(days=now.weekday())).date()  # date only, no tz issues
         this_week_acts = []
         prev_acts = []
         for a in activities:
             sdl = a.get("start_date_local", "")
             if sdl:
                 try:
-                    act_date = datetime.strptime(sdl[:10], "%Y-%m-%d")
+                    act_date = datetime.strptime(sdl[:10], "%Y-%m-%d").date()
                     if act_date >= monday:
                         this_week_acts.append(a)
                     else:
@@ -185,6 +198,15 @@ def build_context(activities, week_summary, weather, plan, profile, goal_mi=None
                     prev_acts.append(a)
             else:
                 prev_acts.append(a)
+
+        # Flag today's runs explicitly
+        today_str = now.strftime("%Y-%m-%d")
+        today_acts = [a for a in this_week_acts if a.get("start_date_local", "")[:10] == today_str]
+        if today_acts:
+            today_mi = sum(float(a.get("distance", "0").replace(" mi", "")) for a in today_acts)
+            parts.append(f"RAN TODAY: Yes — {round(today_mi, 1)} mi already logged today. Today's running is DONE. Do not suggest more running today.")
+        else:
+            parts.append("RAN TODAY: No — no run logged yet today.")
 
         if this_week_acts:
             runs_desc = "; ".join(

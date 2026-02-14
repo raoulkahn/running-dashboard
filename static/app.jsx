@@ -360,7 +360,7 @@ function MapModal({ polyline, accent, t, onClose }) {
 const APP_MODE = (()=>{const p=new URLSearchParams(window.location.search).get("mode");return(p==="personal"||p==="demo"||p==="development")?p:(window.__APP_MODE__||"development");})();
 
 function App(){
-  const [themeKey,setThemeKey]=useState("ocean");
+  const [themeKey,setThemeKey]=useState(()=>{try{return localStorage.getItem("themeKey")||"ocean";}catch(e){return "ocean";}});
   const [showThemes,setShowThemes]=useState(false);
   const [acts,setActs]=useState(ACTIVITIES);
   const [showPlan,setShowPlan]=useState(false);
@@ -383,6 +383,7 @@ function App(){
   // ── Live data & loading state ──
   const [demoMode,setDemoMode]=useState(APP_MODE!=="personal");
   const [connected,setConnected]=useState(false);
+  const [statusChecked,setStatusChecked]=useState(false);
   const [liveProfile,setLiveProfile]=useState(null);
   const [liveActivities,setLiveActivities]=useState(null);
   const [liveWeekDays,setLiveWeekDays]=useState(null);
@@ -407,7 +408,7 @@ function App(){
   useEffect(()=>{
     if(demoMode)return;
     setApiError(null);
-    fetch("/api/status").then(r=>r.json()).then(d=>{setConnected(d.connected);if(d.settings&&d.settings.favoriteShoes)setFavoriteShoes(d.settings.favoriteShoes);}).catch(()=>setConnected(false));
+    fetch("/api/status").then(r=>r.json()).then(d=>{setConnected(d.connected);if(d.settings&&d.settings.favoriteShoes)setFavoriteShoes(d.settings.favoriteShoes);}).catch(()=>setConnected(false)).finally(()=>setStatusChecked(true));
     setLoadingProfile(true);
     fetch("/api/profile").then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
       .then(d=>{if(d.error)throw new Error(d.error);setLiveProfile(d);})
@@ -577,7 +578,7 @@ function App(){
 
     {/* Google Fonts */}
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <style>{`@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}} @keyframes spin{to{transform:rotate(360deg)}} @keyframes fadeSlideIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}} .card-hover{transition:transform 0.3s ease-in-out,box-shadow 0.3s ease-in-out} .card-hover:hover{transform:scale(1.008);box-shadow:0 4px 20px rgba(0,0,0,0.12)} .weather-scroll::-webkit-scrollbar{width:4px} .weather-scroll::-webkit-scrollbar-track{background:transparent} .weather-scroll::-webkit-scrollbar-thumb{background:${t.border};border-radius:4px} .leaflet-container{background:#e6e5e3!important} .splits-scroll::-webkit-scrollbar{width:4px} .splits-scroll::-webkit-scrollbar-track{background:transparent} .splits-scroll::-webkit-scrollbar-thumb{background:${t.border};border-radius:4px}`}</style>
+    <style>{`@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}} @keyframes spin{to{transform:rotate(360deg)}} @keyframes fadeSlideIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}} *{transition:color 1.8s ease,background-color 1.8s ease,border-color 1.8s ease,background 1.8s ease} .card-hover{transition:transform 0.3s ease-in-out,box-shadow 0.3s ease-in-out} .card-hover:hover{transform:scale(1.008);box-shadow:0 4px 20px rgba(0,0,0,0.12)} .weather-scroll::-webkit-scrollbar{width:4px} .weather-scroll::-webkit-scrollbar-track{background:transparent} .weather-scroll::-webkit-scrollbar-thumb{background:${t.border};border-radius:4px} .leaflet-container{background:#e6e5e3!important} .splits-scroll::-webkit-scrollbar{width:4px} .splits-scroll::-webkit-scrollbar-track{background:transparent} .splits-scroll::-webkit-scrollbar-thumb{background:${t.border};border-radius:4px}`}</style>
 
     {/* Header */}
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:28}}>
@@ -607,7 +608,7 @@ function App(){
           {showThemes&&<div style={{position:"absolute",top:42,right:0,background:"#ffffff",border:"1px solid #d4d4d4",borderRadius:12,padding:"12px 8px 8px",boxShadow:"0 8px 32px rgba(0,0,0,0.2),0 2px 8px rgba(0,0,0,0.1)",zIndex:100,width:240}}>
             <div style={{fontSize:11,fontWeight:700,color:"#888",textTransform:"uppercase",letterSpacing:"0.08em",padding:"0 6px 8px",borderBottom:"1px solid #eee",marginBottom:4}}>Choose a Theme</div>
             {["midnight","ocean","strava","forest","slate","storm","twilight","fog","ember","dusk","stravaLight","oceanLight","forestLight","sunsetLight","minimalGray"].map(key=>{const th=THEMES[key];const isA=themeKey===key;return(
-              <button key={key} onClick={()=>{setThemeKey(key);}} style={{display:"flex",alignItems:"center",gap:8,width:"100%",padding:"5px 6px",borderRadius:7,border:isA?`2px solid ${th.accent}`:"2px solid transparent",background:isA?th.accent+"14":"transparent",cursor:"pointer",transition:"all 0.12s"}}
+              <button key={key} onClick={()=>{if(key===themeKey)return;try{localStorage.setItem("themeKey",key);}catch(e){}setThemeKey(key);}} style={{display:"flex",alignItems:"center",gap:8,width:"100%",padding:"5px 6px",borderRadius:7,border:isA?`2px solid ${th.accent}`:"2px solid transparent",background:isA?th.accent+"14":"transparent",cursor:"pointer",transition:"all 0.12s"}}
                 onMouseEnter={e=>{if(!isA)e.currentTarget.style.background="#f5f5f5";}}
                 onMouseLeave={e=>{if(!isA)e.currentTarget.style.background="transparent";}}>
                 <div style={{display:"flex",flexDirection:"row",gap:2,alignItems:"center",flexShrink:0}}>
@@ -629,7 +630,7 @@ function App(){
     </div>}
 
     {/* Strava connect CTA */}
-    {!demoMode&&!connected&&!loadingProfile&&!apiError&&<div style={{...crd,textAlign:"center",padding:"32px 20px",marginBottom:16,borderColor:accent+"30"}}>
+    {!demoMode&&statusChecked&&!connected&&!loadingProfile&&!apiError&&<div style={{...crd,textAlign:"center",padding:"32px 20px",marginBottom:16,borderColor:accent+"30"}}>
       <div style={{fontSize:17,fontWeight:600,marginBottom:8}}>Connect your Strava account</div>
       <div style={{fontSize:15,color:t.dim,marginBottom:16}}>Authorize with Strava to see your live running data</div>
       <a href="/auth/strava" style={{display:"inline-block",padding:"12px 28px",background:"#fc4c02",color:"#fff",textDecoration:"none",borderRadius:10,fontWeight:700,fontSize:16}}>Connect with Strava</a>
