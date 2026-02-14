@@ -481,6 +481,7 @@ function App(){
   },[demoMode]);
 
   const t=THEMES[themeKey];
+  useEffect(()=>{document.documentElement.style.background=t.card;document.body.style.background=t.card;},[themeKey]);
   const accent=t.accent;
   const accent2=t.accent2||t.accent;
   const totalMi=demoMode?26.2:liveTotalMi, goalMi=demoMode?(liveGoalMi||50):liveGoalMi;
