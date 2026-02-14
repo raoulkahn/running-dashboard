@@ -483,6 +483,7 @@ function App(){
 
   const t=THEMES[themeKey];
   useEffect(()=>{document.documentElement.style.background=t.card;document.body.style.background=t.card;},[themeKey]);
+  const isDark=["midnight","ocean","strava","forest","slate"].includes(themeKey);
   const accent=t.accent;
   const accent2=t.accent2||t.accent;
   const totalMi=demoMode?26.2:liveTotalMi, goalMi=demoMode?(liveGoalMi||50):liveGoalMi;
@@ -526,7 +527,7 @@ function App(){
     return (b.miles||0)-(a.miles||0);
   });
 
-  const crd={background:t.card,borderRadius:14,padding:20,border:`1px solid ${t.border}`,transition:"background 0.2s",minWidth:0,overflow:"hidden"};
+  const crd={background:isDark?`linear-gradient(180deg,${t.card2} 0%,${t.card} 100%)`:t.card,borderRadius:14,padding:20,border:isDark?`1px solid rgba(255,255,255,0.06)`:`1px solid ${t.border}`,transition:"background 0.2s",minWidth:0,overflow:"hidden"};
   const lbl={fontSize:14,color:t.dim,textTransform:"uppercase",letterSpacing:"0.08em",fontWeight:600,marginBottom:0,fontFamily:fontStack};
   const anim=(ms)=>({animation:"fadeSlideIn 0.45s ease both",animationDelay:`${ms}ms`});
 
