@@ -35,7 +35,6 @@ Flask backend + React frontend (single-page, inline styles).
 - Run type tagging remains manual (Strava `workout_type` only partially maps)
 - Shoe max mileage is user-configured (default 300mi), not from Strava
 - `goalMi` is user-configured, not from Strava
-- `suffer_score` (Relative Effort) can be null — show "—" if missing
 - All distances from Strava are in meters — convert to miles
 - Rate limit: 100 requests / 15 min — cache responses for 5 min minimum
 - **NEVER push to main or production without explicit user instruction** — always wait for the user to say "push"
@@ -97,6 +96,9 @@ Flask backend + React frontend (single-page, inline styles).
 - VO2 value loaded from /api/activities response on each page load
 - Removed themes: Dusk, Ember, Sunset Light (12 themes remain)
 - Run plan hides 0-target run types from main page display
+- Activity card stats: 4x2 grid (Distance, Pace, Moving Time, Elevation / Calories, Avg HR, Max HR, Avg Cadence)
+- Heart rate + cadence from Strava API: avg_hr, max_hr, avg_cadence (cadence × 2 for actual spm) in strava_client.py
+- Relative Effort removed from activity cards
 
 ## Backlog
 
