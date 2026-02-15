@@ -38,6 +38,8 @@ Flask backend + React frontend (single-page, inline styles).
 - `suffer_score` (Relative Effort) can be null — show "—" if missing
 - All distances from Strava are in meters — convert to miles
 - Rate limit: 100 requests / 15 min — cache responses for 5 min minimum
+- **NEVER push to main or production without explicit user instruction** — always wait for the user to say "push"
+- Feature branches for development, main stays stable for production
 
 ## Completed Phases
 1. ✅ **Phase 1: Strava API Integration** — OAuth, profile, activities, weeks, settings
@@ -48,18 +50,53 @@ Flask backend + React frontend (single-page, inline styles).
 
 ## Post-Launch Polish (Completed)
 - App renamed from "Running Dashboard" to "AI Run Partner"
-- Theme system: 15 themes (5 dark, 5 mid-tone pastel, 5 light), two-tone complementary accent colors
-- Neutral theme picker: white background, horizontal color rectangles (tint + accent), accent-colored selection border + checkmark, stays open for previewing
+- Theme system: 12 themes (5 dark, 3 mid-tone pastel, 4 light), two-tone complementary accent colors
+- Neutral theme picker: white background, horizontal color rectangles (tint + accent), accent-colored selection border + checkmark, stays open for previewing, click outside to close
 - Real Strava polylines for demo maps (replaced synthetic data)
-- Demo data: DJ Run profile, 16 shoes (show 7 default), activity notes/descriptions
-- Hover animations (.card-hover), loading skeleton shimmer, day bubble tooltips
-- Staggered fade-slide-in on page load, progress bar fill animation
+- Demo data: DJ Run profile, 16 shoes (show 4 default), activity notes/descriptions
+- Theme persistence via localStorage (survives page refresh, fallback to "ocean" if saved theme removed)
+- Smooth theme transitions: global CSS `*{transition}` for color/background/border at 1.8s
+- Loading skeleton shimmer, demo info banner (dismissable)
 - Weekly goal edit works in demo mode (state-only, no POST)
 - Expanded map 30% larger, green start marker restored
 - Splits: show 8 visible, hide last split if < 0.1 miles
-- Demo info banner (dismissable)
 - Past weeks day bubbles use accent color (matching current week)
 - Peer review fixes: divide-by-zero guards, null split handling, stale state cleanup, unused state removed
+
+## AI Assistant Polish (Completed)
+- Full system prompt rewrite: casual running buddy tone, max 3 actionable bullets
+- Mode detection: pre_run, post_run, rest_day, evening_no_run
+- Day awareness: explicit day-of-week context, correct "tomorrow" references
+- ONE RUN PER DAY: explicit "RAN TODAY" field in context, never suggest more running after a run
+- 3-day recency rule: never reference specific past runs older than 3 days
+- Mileage honesty: no guilt-tripping, no "tackle/make up/salvage" language
+- Weather-aware: rain tomorrow = rest day, don't push running in bad weather
+- Weigh-in reminders on Mon/Thu/Sun if bullet space allows
+- Multiple runs in a day: reference total daily mileage only, don't call any a "warm-up"
+- Week boundaries: Mon-Sun separation in build_context(), correct current vs previous week
+- Timezone fix: ZoneInfo("America/Los_Angeles") in detect_mode() and build_context()
+- Bullet rendering: AI assistant message parsed from plain text into `<ul><li>` elements
+- Assistant cache (assistant_cache.json) with TTL per mode
+
+## Visual Polish & Animations (Completed)
+- Page load animations: `settleIn` keyframe for sections (staggered fade + slight overshoot), `dayBounce` for weekly day boxes (staggered left-to-right scale bounce)
+- VO2 max gauge: SVG arc fill animation on page load via stroke-dasharray/dashoffset
+- Shoe progress bars: staggered fill animation (80ms between each shoe)
+- Weekly goal + run plan progress bars use green (#06d6a0, matching VO2 ring) across all themes
+- Dark theme cards: soft borders rgba(255,255,255,0.06), gradient background (card2 → card)
+- Three-tier hover system:
+  - **Immediate only** (dock-day, weather-row): background-color darken, no delayed shift
+  - **Small elements** (item-hover — run plan items, shoe rows, weather rows): immediate background darken + delayed shift right (translateX(3px), 0.6s ease after 0.4s delay)
+  - **Big containers** (card-hover — AI assistant, weather, weekly goal, run plan, shoes, profile, activity cards): immediate brightness + shadow + delayed shift up (translateY(-2px), 0.6s ease after 0.4s delay)
+- Light theme hover: darkening instead of brightening (brightness 0.95, rgba(0,0,0,0.07-0.08))
+- DockDay hover fix: animation fill-mode no longer locks transform after page-load bounce completes
+- Tooltips fade in with opacity transition (0.2s), always rendered in DOM
+- Strava CTA flash fix: gated by `statusChecked` state
+- Pulse icon (header): spin animation on hover
+- VO2 max: read-only display (value from Garmin via user_settings.json, no user editing)
+- VO2 value loaded from /api/activities response on each page load
+- Removed themes: Dusk, Ember, Sunset Light (12 themes remain)
+- Run plan hides 0-target run types from main page display
 
 ## Backlog
 
@@ -70,7 +107,7 @@ Flask backend + React frontend (single-page, inline styles).
 - Add cross-training "types" similar to run types — strength categories (e.g., Chest & Arms, Back & Shoulders, Legs) with note fields for context
 - AI assistant awareness: pass all activity types into build_context() so it can suggest what's missing (e.g., "no upper body this week"). Keep suggestions conservative — these are reminders, not plans
 - Personal/live environment only for now
-- Branching strategy TBD — will develop on feature branch, main stays stable for public demo
+- Develop on feature branch, main stays stable for production
 
 ### AI Eval Framework / Scenario Stress Tester (Detailed Scope)
 
@@ -107,8 +144,11 @@ Total estimate: 2-3 days. API cost: ~400 Claude API calls per run (200 scenarios
 - Bar should visually animate filling to 100% before the celebration triggers
 - Personal and demo app
 
+### Demo Mode AI Message Formatting
+- Update the demo's hardcoded AI assistant message to match the new format: 1-2 sentence opening line + bulleted list of suggestions
+- Keep it consistent with the personal/live AI assistant output style
+
 ### Other
-- Past weeks hover animation (not working)
 - Save Plan button disabled until changes made
 - Weather widget individual row cards (Figma style)
 - Background gradient more visible
@@ -117,13 +157,14 @@ Total estimate: 2-3 days. API cost: ~400 Claude API calls per run (200 scenarios
 - Custom theme color picker
 
 ## Development Rules
-Before building any new feature or substantial change, always assess and communicate:
-- Which app(s) it affects (personal only, demo only, or both)
-- Merge risks if the feature branch diverges significantly from main
-- Whether it should be personal-only first or rolled out to both apps
-- Any shared code (routing, assistant_client, CSS/layout) that could break the other environment
-
-This applies to all feature discussions, not just implementation.
+- **Never push to main without explicit user instruction**
+- Use feature branches for development; main stays stable for production
+- Before building any new feature or substantial change, assess and communicate:
+  - Which app(s) it affects (personal only, demo only, or both)
+  - Merge risks if the feature branch diverges significantly from main
+  - Whether it should be personal-only first or rolled out to both apps
+  - Any shared code (routing, assistant_client, CSS/layout) that could break the other environment
+- This applies to all feature discussions, not just implementation.
 
 ## APP_MODE System
 Environment variable `APP_MODE` controls frontend behavior:
