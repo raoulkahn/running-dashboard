@@ -256,6 +256,7 @@ def get_profile():
         "name": f"{athlete.get('firstname', '')} {athlete.get('lastname', '')}".strip(),
         "city": athlete.get("city", ""),
         "state": athlete.get("state", ""),
+        "avatar": athlete.get("profile_medium", ""),
         "ytd_miles": ytd_miles,
         "shoes": shoes,
         "measurement_preference": athlete.get("measurement_preference", "feet"),

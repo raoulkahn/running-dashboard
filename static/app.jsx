@@ -378,12 +378,21 @@ function App(){
   const [plan,setPlan]=useState(PLAN_DEFAULTS);
   const [tmp,setTmp]=useState(null);
   const [showAllShoes,setShowAllShoes]=useState(false);
+  const [cardMode,setCardMode]=useState(()=>{try{return localStorage.getItem("cardMode")||"expanded";}catch(e){return "expanded";}});
+  const [expandedCards,setExpandedCards]=useState({});
+  const activitiesRef=React.useRef(null);
   const [hovDay,setHovDay]=useState(null);
   const [mapModal,setMapModal]=useState(null);
   const [editGoal,setEditGoal]=useState(false);
   const [goalInput,setGoalInput]=useState("");
   const [expandedNotes,setExpandedNotes]=useState({});
   const [demoBannerDismissed,setDemoBannerDismissed]=useState(false);
+  const DEFAULT_NOTES=[{id:1,text:"Superblast 3 launches March 1st"},{id:2,text:"Walnut Creek Run this Sunday - 8am"},{id:3,text:"Don\u2019t forget to sign up for SF Marathon"}];
+  const [notesEnabled,setNotesEnabled]=useState(()=>{try{return localStorage.getItem("notesEnabled")!=="false";}catch(e){return true;}});
+  const [userNotes,setUserNotes]=useState(()=>{try{const s=localStorage.getItem("userNotes");return s?JSON.parse(s):DEFAULT_NOTES;}catch(e){return DEFAULT_NOTES;}});
+  const [noteModal,setNoteModal]=useState(null); // null | {id:null,text:""} (add) | {id:123,text:"..."} (edit)
+  const [confirmDeleteId,setConfirmDeleteId]=useState(null);
+  const [showAllNotes,setShowAllNotes]=useState(false);
 
   const [favoriteShoes,setFavoriteShoes]=useState([]);
 
@@ -501,6 +510,7 @@ function App(){
   const resolvedName=demoMode?"DJ Run":(liveProfile?liveProfile.name:"\u2014");
   const resolvedLocation=demoMode?"Concord, CA":(liveProfile?[liveProfile.city,liveProfile.state].filter(Boolean).join(", "):"\u2014");
   const resolvedYtdMiles=demoMode?198.7:(liveProfile?liveProfile.ytd_miles:0);
+  const resolvedAvatar=demoMode?null:(liveProfile?liveProfile.avatar:null);
   const resolvedWeather=liveWeather||WEATHER;
 
   // Current week boundaries (shared by plan counts + RunTypePill rules)
@@ -606,27 +616,66 @@ function App(){
           {demoMode?"DEMO":"LIVE"}
         </button>}
         <div style={{position:"relative"}}>
-          <button onClick={()=>setShowThemes(!showThemes)} style={{width:38,height:38,borderRadius:10,border:`1px solid ${t.border}`,background:t.card,cursor:"pointer",display:"grid",gridTemplateColumns:"1fr 1fr",gap:3,padding:8,transition:"border-color 0.2s"}}
+          <button onClick={()=>setShowThemes(!showThemes)} style={{width:38,height:38,borderRadius:10,border:`1px solid ${t.border}`,background:t.card,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"border-color 0.2s"}}
             onMouseEnter={e=>e.currentTarget.style.borderColor=accent}
             onMouseLeave={e=>e.currentTarget.style.borderColor=t.border}
-            title="Change theme">
-            {[THEMES.ocean.swatch,THEMES.strava.swatch,THEMES.fog.swatch,THEMES.oceanLight.swatch].map((c,i)=>
-              <div key={i} style={{width:8,height:8,borderRadius:"50%",background:c}}/>
-            )}
+            title="Settings">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           </button>
-          {showThemes&&<><div onClick={()=>setShowThemes(false)} style={{position:"fixed",inset:0,zIndex:99}}/><div style={{position:"absolute",top:42,right:0,background:"#ffffff",border:"1px solid #d4d4d4",borderRadius:12,padding:"12px 8px 8px",boxShadow:"0 8px 32px rgba(0,0,0,0.2),0 2px 8px rgba(0,0,0,0.1)",zIndex:100,width:240}}>
-            <div style={{fontSize:11,fontWeight:700,color:"#888",textTransform:"uppercase",letterSpacing:"0.08em",padding:"0 6px 8px",borderBottom:"1px solid #eee",marginBottom:4}}>Choose a Theme</div>
-            {["midnight","ocean","strava","forest","slate","storm","twilight","fog","stravaLight","oceanLight","forestLight","minimalGray"].map(key=>{const th=THEMES[key];const isA=themeKey===key;return(
-              <button key={key} onClick={()=>{if(key===themeKey)return;try{localStorage.setItem("themeKey",key);}catch(e){}setThemeKey(key);}} style={{display:"flex",alignItems:"center",gap:8,width:"100%",padding:"5px 6px",borderRadius:7,border:isA?`2px solid ${th.accent}`:"2px solid transparent",background:isA?th.accent+"14":"transparent",cursor:"pointer",transition:"all 0.12s"}}
-                onMouseEnter={e=>{if(!isA)e.currentTarget.style.background="#f5f5f5";}}
-                onMouseLeave={e=>{if(!isA)e.currentTarget.style.background="transparent";}}>
-                <div style={{display:"flex",flexDirection:"row",gap:2,alignItems:"center",flexShrink:0}}>
-                  <div style={{width:28,height:20,borderRadius:4,background:th.tint,border:"1px solid #ccc"}}/>
-                  <div style={{width:28,height:20,borderRadius:4,background:th.accent}}/>
-                </div>
-                <span style={{fontSize:13,color:isA?"#1a1a1a":"#555",fontWeight:isA?600:400,fontFamily:fontStack,flex:1,textAlign:"left"}}>{th.name}</span>
-                {isA&&<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={th.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>}
-              </button>);})}
+          {showThemes&&<><div onClick={()=>setShowThemes(false)} style={{position:"fixed",inset:0,zIndex:99}}/><div style={{position:"absolute",top:42,right:0,background:"#ffffff",border:"1px solid #d4d4d4",borderRadius:12,padding:"12px 10px 10px",boxShadow:"0 8px 32px rgba(0,0,0,0.2),0 2px 8px rgba(0,0,0,0.1)",zIndex:100,width:300}}>
+            {/* Title + Close */}
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"0 4px 8px"}}>
+              <div style={{fontSize:14,fontWeight:700,color:"#333"}}>Settings</div>
+              <button onClick={()=>setShowThemes(false)} style={{background:"none",border:"none",cursor:"pointer",padding:2,display:"flex"}}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            {/* Theme grid — 2 columns */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:3,marginBottom:8}}>
+              {["midnight","ocean","strava","forest","slate","storm","twilight","fog","stravaLight","oceanLight","forestLight","minimalGray"].map(key=>{const th=THEMES[key];const isA=themeKey===key;return(
+                <button key={key} onClick={()=>{if(key===themeKey)return;try{localStorage.setItem("themeKey",key);}catch(e){}setThemeKey(key);}} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 6px",borderRadius:7,border:isA?`2px solid ${th.accent}`:"2px solid transparent",background:isA?th.accent+"14":"transparent",cursor:"pointer",transition:"all 0.12s"}}
+                  onMouseEnter={e=>{if(!isA)e.currentTarget.style.background="#f5f5f5";}}
+                  onMouseLeave={e=>{if(!isA)e.currentTarget.style.background="transparent";}}>
+                  <div style={{display:"flex",gap:2,flexShrink:0}}>
+                    <div style={{width:20,height:14,borderRadius:3,background:th.tint,border:"1px solid #ccc"}}/>
+                    <div style={{width:20,height:14,borderRadius:3,background:th.accent}}/>
+                  </div>
+                  <span style={{fontSize:12,color:isA?"#1a1a1a":"#555",fontWeight:isA?600:400,fontFamily:fontStack,whiteSpace:"nowrap"}}>{th.name}</span>
+                  {isA&&<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={th.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>}
+                </button>);})}
+            </div>
+            {/* Divider */}
+            <div style={{borderTop:"1px solid #eee",margin:"4px 0 8px"}}/>
+            {/* Activity Display */}
+            <div style={{fontSize:11,fontWeight:700,color:"#888",textTransform:"uppercase",letterSpacing:"0.08em",padding:"0 4px 8px"}}>Activity Display</div>
+            <div style={{display:"flex",gap:8,padding:"0 4px",marginBottom:8}}>
+              {[{key:"compact",label:"Compact",h:24},{key:"expanded",label:"Expanded",h:36,sub:"displays splits and map"}].map(opt=>{const isA=cardMode===opt.key;return(
+                <button key={opt.key} onClick={()=>{if(opt.key===cardMode)return;try{localStorage.setItem("cardMode",opt.key);}catch(e){}setCardMode(opt.key);setExpandedCards({});setTimeout(()=>{activitiesRef.current?.scrollIntoView({behavior:"smooth",block:"start"});},100);}} style={{flex:1,padding:"10px 8px",borderRadius:8,border:isA?`2px solid ${accent}`:"2px solid #e0e0e0",background:isA?accent+"14":"transparent",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:6,transition:"all 0.12s"}}
+                  onMouseEnter={e=>{if(!isA)e.currentTarget.style.background="#f5f5f5";}}
+                  onMouseLeave={e=>{if(!isA)e.currentTarget.style.background=isA?accent+"14":"transparent";}}>
+                  <div style={{width:40,height:opt.h,borderRadius:4,border:"2px solid "+(isA?"#888":"#ccc"),background:isA?"#f0f0f0":"#fafafa"}}/>
+                  <span style={{fontSize:13,fontWeight:isA?600:400,color:isA?"#1a1a1a":"#555"}}>{opt.label}</span>
+                  {opt.sub&&<span style={{fontSize:10,color:"#999",marginTop:-4}}>{opt.sub}</span>}
+                </button>);})}
+            </div>
+            {/* Notes toggle */}
+            <div style={{borderTop:"1px solid #eee",padding:"8px 4px 0"}}>
+              <div style={{fontSize:11,fontWeight:700,color:"#888",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Notes</div>
+              <div style={{display:"flex",gap:8}}>
+                <button onClick={()=>{const nv=!notesEnabled;setNotesEnabled(nv);try{localStorage.setItem("notesEnabled",String(nv));}catch(e){}}} style={{flex:1,padding:"10px 8px",borderRadius:8,border:notesEnabled?`2px solid ${accent}`:"2px solid #e0e0e0",background:notesEnabled?accent+"14":"transparent",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:6,transition:"all 0.12s"}}
+                  onMouseEnter={e=>{if(!notesEnabled)e.currentTarget.style.background="#f5f5f5";}}
+                  onMouseLeave={e=>{e.currentTarget.style.background=notesEnabled?accent+"14":"transparent";}}>
+                  <svg width="40" height="36" viewBox="0 0 40 36" fill="none">
+                    <rect x="2" y="2" width="36" height="32" rx="4" stroke={notesEnabled?"#888":"#ccc"} strokeWidth="2" fill={notesEnabled?"#f0f0f0":"#fafafa"}/>
+                    <line x1="10" y1="12" x2="30" y2="12" stroke={notesEnabled?"#888":"#ccc"} strokeWidth="2" strokeLinecap="round"/>
+                    <line x1="10" y1="19" x2="26" y2="19" stroke={notesEnabled?"#888":"#ccc"} strokeWidth="2" strokeLinecap="round"/>
+                    <line x1="10" y1="26" x2="22" y2="26" stroke={notesEnabled?"#888":"#ccc"} strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  <span style={{fontSize:13,fontWeight:notesEnabled?600:400,color:notesEnabled?"#1a1a1a":"#555"}}>{notesEnabled?"On":"Off"}</span>
+                </button>
+              </div>
+              <div style={{fontSize:11,color:"#999",lineHeight:1.4,marginTop:8}}>A personal scratchpad for running reminders and to-dos</div>
+            </div>
           </div></>}
         </div>
       </div>
@@ -711,7 +760,7 @@ function App(){
         </div>}</div>
 
         {/* Activity Feed */}
-        <div style={anim(300)}>{!demoMode&&loadingActivities?<LoadingCard t={t} rows={5} label="RECENT ACTIVITIES"/>:<div>
+        <div ref={activitiesRef} style={anim(300)}>{!demoMode&&loadingActivities?<LoadingCard t={t} rows={5} label="RECENT ACTIVITIES"/>:<div>
           <div style={{...lbl,marginBottom:14}}>RECENT ACTIVITIES</div>
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
             {acts.map(a=><div key={a.id} className="card-hover" style={{...crd}}>
@@ -743,7 +792,7 @@ function App(){
               </div>}
 
               {/* Bottom: Splits + Route Map side by side */}
-              <div style={{marginTop:18,paddingTop:18,borderTop:`1px solid ${t.border}`}}>
+              {(cardMode==="expanded"||expandedCards[a.id])?<div style={{marginTop:18,paddingTop:18,borderTop:`1px solid ${t.border}`}}>
                 <div style={{display:"grid",gridTemplateColumns:"auto 1fr",gap:10}}>
                   <div>
                     <div style={{...lbl,marginBottom:10}}>SPLITS</div>
@@ -777,7 +826,20 @@ function App(){
                     </div>}
                   </div>
                 </div>
-              </div>
+                {cardMode==="compact"&&expandedCards[a.id]&&<div style={{textAlign:"center",marginTop:14}}>
+                  <button onClick={()=>setExpandedCards(p=>{const n={...p};delete n[a.id];return n;})} style={{background:"none",border:`1px solid ${t.border}`,borderRadius:8,color:accent,fontSize:14,padding:"7px 20px",cursor:"pointer",fontWeight:600,fontFamily:fontStack,transition:"border-color 0.2s"}}
+                    onMouseEnter={e=>e.currentTarget.style.borderColor=accent}
+                    onMouseLeave={e=>e.currentTarget.style.borderColor=t.border}>
+                    Hide Splits and Map ▲
+                  </button>
+                </div>}
+              </div>:cardMode==="compact"&&<div style={{textAlign:"center",marginTop:14}}>
+                <button onClick={()=>setExpandedCards(p=>({...p,[a.id]:true}))} style={{background:"none",border:`1px solid ${t.border}`,borderRadius:8,color:accent,fontSize:14,padding:"7px 20px",cursor:"pointer",fontWeight:600,fontFamily:fontStack,transition:"border-color 0.2s"}}
+                  onMouseEnter={e=>e.currentTarget.style.borderColor=accent}
+                  onMouseLeave={e=>e.currentTarget.style.borderColor=t.border}>
+                  Show Splits and Map ▼
+                </button>
+              </div>}
             </div>)}
           </div>
           {!demoMode&&loadingMore&&<div style={{textAlign:"center",padding:"20px 0"}}><div style={{display:"inline-block",width:24,height:24,border:`3px solid ${t.border}`,borderTopColor:accent,borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/></div>}
@@ -791,6 +853,9 @@ function App(){
         {/* Profile + Predictions */}
         <div style={anim(100)}>{!demoMode&&loadingProfile?<LoadingCard t={t} rows={3} label="PROFILE"/>:<div className="card-hover" style={{...crd,padding:"14px 20px"}}>
           <div style={{display:"flex",alignItems:"center",gap:16}}>
+            {resolvedAvatar?<img src={resolvedAvatar} alt="" style={{width:52,height:52,borderRadius:8,objectFit:"cover",flexShrink:0,alignSelf:"flex-start"}}/>:demoMode&&<div style={{width:52,height:52,borderRadius:8,background:accent+"22",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,alignSelf:"flex-start"}}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>}
             <div style={{flex:1}}>
               <div style={{fontWeight:700,fontSize:20,letterSpacing:"-0.01em"}}>{resolvedName}</div>
               <div style={{fontSize:15,color:accent,marginTop:3,fontWeight:500,opacity:0.7}}>{resolvedLocation}</div>
@@ -802,6 +867,41 @@ function App(){
             </div>
           </div>
         </div>}</div>
+
+        {/* Notes */}
+        {notesEnabled&&userNotes.length>0&&<div style={anim(150)}><div className="card-hover" style={crd}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+            <div style={lbl}>NOTES</div>
+            <button onClick={()=>setNoteModal({id:null,text:""})} style={{background:"none",border:"none",cursor:"pointer",padding:2,display:"flex",alignItems:"center"}} title="Add note">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
+          <div>
+            {(showAllNotes?userNotes:userNotes.slice(0,3)).map(note=><div key={note.id} className="item-hover" style={{display:"flex",alignItems:"flex-start",gap:8,padding:"8px 6px",borderRadius:6,borderBottom:`1px solid ${t.border}18`}}>
+                <div style={{flex:1,fontSize:14,color:t.text,lineHeight:1.5}}>{note.text}</div>
+                <div style={{display:"flex",gap:4,flexShrink:0}}>
+                  {confirmDeleteId===note.id?<>
+                    <button onClick={()=>{const updated=userNotes.filter(n=>n.id!==note.id);setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}setConfirmDeleteId(null);}} style={{background:"#ff6b6b",border:"none",borderRadius:4,color:"#fff",fontSize:11,fontWeight:600,padding:"2px 8px",cursor:"pointer",fontFamily:fontStack}}>Delete</button>
+                    <button onClick={()=>setConfirmDeleteId(null)} style={{background:"none",border:`1px solid ${t.border}`,borderRadius:4,color:t.dim,fontSize:11,fontWeight:500,padding:"2px 8px",cursor:"pointer",fontFamily:fontStack}}>Cancel</button>
+                  </>:<>
+                    <button onClick={()=>setNoteModal({id:note.id,text:note.text})} style={{background:"none",border:"none",cursor:"pointer",padding:2,opacity:0.7}} title="Edit">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.dimBright} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button onClick={()=>setConfirmDeleteId(note.id)} style={{background:"none",border:"none",cursor:"pointer",padding:2,opacity:0.7}} title="Delete">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.dimBright} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </>}
+                </div>
+            </div>)}
+          </div>
+          {userNotes.length>3&&<div style={{textAlign:"center",marginTop:10}}>
+            <button onClick={()=>setShowAllNotes(!showAllNotes)} style={{background:"none",border:`1px solid ${t.border}`,borderRadius:8,color:accent,fontSize:13,padding:"5px 16px",cursor:"pointer",fontWeight:600,fontFamily:fontStack,transition:"border-color 0.2s"}}
+              onMouseEnter={e=>e.currentTarget.style.borderColor=accent}
+              onMouseLeave={e=>e.currentTarget.style.borderColor=t.border}>
+              {showAllNotes?"Show Less":"Show All Notes"} {showAllNotes?"\u25B2":"\u25BC"}
+            </button>
+          </div>}
+        </div></div>}
 
         {/* Weather */}
         <div style={anim(200)}><div className="card-hover" style={crd}>
@@ -931,6 +1031,25 @@ function App(){
 
     {/* Map Modal */}
     {mapModal&&<MapModal polyline={mapModal} accent={accent} t={t} onClose={()=>setMapModal(null)}/>}
+
+    {/* Note Add/Edit Modal */}
+    {noteModal&&<div style={{position:"fixed",inset:0,zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div onClick={()=>setNoteModal(null)} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.5)"}}/>
+      <div style={{position:"relative",background:t.card,border:`1px solid ${t.border}`,borderRadius:14,padding:24,width:400,maxWidth:"90vw",boxShadow:"0 12px 40px rgba(0,0,0,0.3)",zIndex:9001}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div style={{fontSize:16,fontWeight:700,color:t.text}}>{noteModal.id?"Edit Note":"Add Note"}</div>
+          <button onClick={()=>setNoteModal(null)} style={{background:"none",border:"none",cursor:"pointer",padding:2}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={t.dim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <textarea value={noteModal.text} onChange={e=>setNoteModal(p=>({...p,text:e.target.value}))} autoFocus placeholder="Write a note..." rows={4} style={{width:"100%",background:isDark?"rgba(255,255,255,0.08)":t.input||"#f5f5f5",border:`1px solid ${t.border}`,borderRadius:8,padding:"10px 12px",fontSize:14,color:t.text,fontFamily:fontStack,outline:"none",resize:"vertical",lineHeight:1.5}}
+          onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey&&noteModal.text.trim()){e.preventDefault();if(noteModal.id){const updated=userNotes.map(n=>n.id===noteModal.id?{...n,text:noteModal.text.trim()}:n);setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}}else{const updated=[{id:Date.now(),text:noteModal.text.trim()},...userNotes];setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}}setNoteModal(null);}if(e.key==="Escape")setNoteModal(null);}}/>
+        <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:12}}>
+          <button onClick={()=>setNoteModal(null)} style={{background:"none",border:`1px solid ${t.border}`,borderRadius:8,color:t.dim,fontSize:13,fontWeight:500,padding:"7px 16px",cursor:"pointer",fontFamily:fontStack}}>Cancel</button>
+          <button onClick={()=>{if(noteModal.text.trim()){if(noteModal.id){const updated=userNotes.map(n=>n.id===noteModal.id?{...n,text:noteModal.text.trim()}:n);setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}}else{const updated=[{id:Date.now(),text:noteModal.text.trim()},...userNotes];setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}}setNoteModal(null);}}} style={{background:accent,border:"none",borderRadius:8,color:"#fff",fontSize:13,fontWeight:600,padding:"7px 16px",cursor:"pointer",fontFamily:fontStack}}>{noteModal.id?"Save":"Add"}</button>
+        </div>
+      </div>
+    </div>}
   </div>
   </div>;
 }
