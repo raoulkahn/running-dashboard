@@ -148,6 +148,12 @@ Total estimate: 2-3 days. API cost: ~400 Claude API calls per run (200 scenarios
 - Update the demo's hardcoded AI assistant message to match the new format: 1-2 sentence opening line + bulleted list of suggestions
 - Keep it consistent with the personal/live AI assistant output style
 
+### Settings Panel & Layout Customization
+- Collapsible activity cards: default to compact view (title, stats, heart rate, notes) with expand button to reveal map and splits. Saves vertical space with multiple activities.
+- Reorderable right sidebar: allow user to set vertical order of Weather, Weekly Run Plan, and Shoes sections via settings panel or drag-and-drop
+- Store all preferences in localStorage
+- Personal and demo app
+
 ### Other
 - Save Plan button disabled until changes made
 - Weather widget individual row cards (Figma style)

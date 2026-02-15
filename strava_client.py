@@ -345,6 +345,9 @@ def get_activity_detail(activity_id):
         "splits": splits,
         "cal": a.get("calories", 0) or 0,
         "eff": a.get("suffer_score") or None,  # Can be null
+        "avg_hr": round(a["average_heartrate"]) if a.get("has_heartrate") and a.get("average_heartrate") else None,
+        "max_hr": round(a["max_heartrate"]) if a.get("has_heartrate") and a.get("max_heartrate") else None,
+        "avg_cadence": round(a["average_cadence"] * 2) if a.get("average_cadence") else None,
         "start_date_local": a.get("start_date_local", ""),
         "polyline": (a.get("map") or {}).get("summary_polyline") or None,
         "city": _get_city(a),

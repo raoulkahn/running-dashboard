@@ -72,15 +72,15 @@ const _POLY_LOOP = "knxfFvsvgVD|A?bEDfAAhADlGA|ABvBB|GDzD?~AFtF?|DDh@DLTd@X`@lA|
 const _POLY_OUT = "sdvfFv~lgVq@dA}@jAWd@mAjBaKhO{@tACHa@ZSXkC`EkAzAs@lAaArA[j@_BbC}B~CcAfBGVsAjBs@fAc@bAM\\ORSl@WbAEZiBbJC\\Gb@GPILI\\QtASbAI`@Qb@qB`KOf@}@xE_BxHId@q@~CYxA{AdHeB|IQ`BG`B?p@D`F?bCBj@E~ADzE@lFDvBDdOFhGCtB@zD@tADPC|AHlG?pAD|BDbG?VGp@?f@BdCBl@B|BAlG";
 const ACTIVITIES = [
   { id:1, title:"Morning Long Run", date:"7:24 AM · Feb 11", start_date_local:"2026-02-11T07:24:00", distance:"13.3 mi", pace:"7:42 /mi", time:"1h 42m", elev:"512 ft", shoe:"ASICS Megablast - Purple", device:"Garmin Forerunner 970", runType:"Easy Long Run", sport:"run", city:"Concord, California", polyline:_POLY_LONG, description:"Bring more water next time. Felt good through mile 8 but started to fade. Need to fuel better on long runs. Also the left knee was a bit tight on the downhills — should stretch more before heading out.",
-    splits:[{m:1,p:"7:55",e:"-42ft"},{m:2,p:"7:48",e:"18ft"},{m:3,p:"7:42",e:"-12ft"},{m:4,p:"7:38",e:"31ft"},{m:5,p:"7:45",e:"-8ft"},{m:6,p:"7:40",e:"22ft"},{m:7,p:"7:36",e:"-15ft"},{m:8,p:"7:42",e:"45ft"},{m:9,p:"7:39",e:"-28ft"},{m:10,p:"7:44",e:"12ft"},{m:11,p:"7:35",e:"-6ft"},{m:12,p:"7:41",e:"38ft"},{m:13,p:"7:30",e:"-22ft"}], cal:1124, eff:142 },
+    splits:[{m:1,p:"7:55",e:"-42ft"},{m:2,p:"7:48",e:"18ft"},{m:3,p:"7:42",e:"-12ft"},{m:4,p:"7:38",e:"31ft"},{m:5,p:"7:45",e:"-8ft"},{m:6,p:"7:40",e:"22ft"},{m:7,p:"7:36",e:"-15ft"},{m:8,p:"7:42",e:"45ft"},{m:9,p:"7:39",e:"-28ft"},{m:10,p:"7:44",e:"12ft"},{m:11,p:"7:35",e:"-6ft"},{m:12,p:"7:41",e:"38ft"},{m:13,p:"7:30",e:"-22ft"}], cal:1124, eff:142, avg_hr:148, max_hr:172, avg_cadence:174 },
   { id:2, title:"Easy Recovery Run", date:"6:15 AM · Feb 10", start_date_local:"2026-02-10T06:15:00", distance:"8.1 mi", pace:"8:24 /mi", time:"1h 8m", elev:"245 ft", shoe:"Nike Vomero Plus - Orange", device:"Garmin Forerunner 970", runType:null, sport:"run", city:"Concord, California", polyline:_POLY_MED,
-    splits:[{m:1,p:"8:32",e:"-18ft"},{m:2,p:"8:28",e:"22ft"},{m:3,p:"8:20",e:"-8ft"},{m:4,p:"8:25",e:"35ft"},{m:5,p:"8:22",e:"-12ft"},{m:6,p:"8:18",e:"28ft"},{m:7,p:"8:30",e:"-15ft"},{m:8,p:"8:24",e:"18ft"}], cal:682, eff:88 },
+    splits:[{m:1,p:"8:32",e:"-18ft"},{m:2,p:"8:28",e:"22ft"},{m:3,p:"8:20",e:"-8ft"},{m:4,p:"8:25",e:"35ft"},{m:5,p:"8:22",e:"-12ft"},{m:6,p:"8:18",e:"28ft"},{m:7,p:"8:30",e:"-15ft"},{m:8,p:"8:24",e:"18ft"}], cal:682, eff:88, avg_hr:138, max_hr:156, avg_cadence:168 },
   { id:3, title:"Tempo Run", date:"5:45 AM · Feb 9", start_date_local:"2026-02-09T05:45:00", distance:"4.8 mi", pace:"7:18 /mi", time:"35m", elev:"128 ft", shoe:"Saucony Endorphin Speed 3", device:"Garmin Forerunner 970", runType:"Tempo Run", sport:"run", city:"Concord, California", polyline:_POLY_SHORT,
-    splits:[{m:1,p:"7:25",e:"12ft"},{m:2,p:"7:18",e:"-8ft"},{m:3,p:"7:15",e:"22ft"},{m:4,p:"7:12",e:"-18ft"}], cal:412, eff:72 },
+    splits:[{m:1,p:"7:25",e:"12ft"},{m:2,p:"7:18",e:"-8ft"},{m:3,p:"7:15",e:"22ft"},{m:4,p:"7:12",e:"-18ft"}], cal:412, eff:72, avg_hr:162, max_hr:178, avg_cadence:180 },
   { id:4, title:"Morning Shakeout", date:"7:00 AM · Feb 7", start_date_local:"2026-02-07T07:00:00", distance:"6.2 mi", pace:"8:05 /mi", time:"50m", elev:"184 ft", shoe:"ASICS Superblast 2 - Teal", device:"Garmin Forerunner 970", runType:"Easy Standard Run", sport:"run", city:"Concord, California", polyline:_POLY_LOOP,
-    splits:[{m:1,p:"8:12",e:"-22ft"},{m:2,p:"8:08",e:"15ft"},{m:3,p:"8:02",e:"-8ft"},{m:4,p:"8:05",e:"28ft"},{m:5,p:"8:00",e:"-12ft"},{m:6,p:"7:58",e:"18ft"}], cal:528, eff:62 },
+    splits:[{m:1,p:"8:12",e:"-22ft"},{m:2,p:"8:08",e:"15ft"},{m:3,p:"8:02",e:"-8ft"},{m:4,p:"8:05",e:"28ft"},{m:5,p:"8:00",e:"-12ft"},{m:6,p:"7:58",e:"18ft"}], cal:528, eff:62, avg_hr:142, max_hr:158, avg_cadence:170 },
   { id:5, title:"Wednesday Hills", date:"6:30 AM · Jan 29", start_date_local:"2026-01-29T06:30:00", distance:"7.3 mi", pace:"8:15 /mi", time:"1h 0m", elev:"380 ft", shoe:"Adidas Red EVO SL", device:"Garmin Forerunner 970", runType:null, sport:"run", city:"Concord, California", polyline:_POLY_OUT,
-    splits:[{m:1,p:"8:22",e:"45ft"},{m:2,p:"8:30",e:"62ft"},{m:3,p:"8:18",e:"-28ft"},{m:4,p:"8:05",e:"-35ft"},{m:5,p:"8:10",e:"48ft"},{m:6,p:"8:20",e:"-32ft"},{m:7,p:"8:12",e:"-15ft"}], cal:618, eff:78 },
+    splits:[{m:1,p:"8:22",e:"45ft"},{m:2,p:"8:30",e:"62ft"},{m:3,p:"8:18",e:"-28ft"},{m:4,p:"8:05",e:"-35ft"},{m:5,p:"8:10",e:"48ft"},{m:6,p:"8:20",e:"-32ft"},{m:7,p:"8:12",e:"-15ft"}], cal:618, eff:78, avg_hr:152, max_hr:168, avg_cadence:166 },
 ];
 
 const WEATHER = [
@@ -722,9 +722,9 @@ function App(){
               </div>
               {/* Line 2: Time · Date · Device · Shoe · City */}
               <div style={{fontSize:14,color:t.dim,marginBottom:14,fontWeight:500}}>{[a.date,a.device,a.shoe,a.city].filter(Boolean).join(" · ")}</div>
-              {/* Line 3: Stats row — evenly spaced */}
-              <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:"8px 0"}}>
-                {[{l:"Distance",v:a.distance},{l:"Pace",v:a.pace},{l:"Moving Time",v:a.time},{l:"Elevation",v:a.elev},{l:"Calories",v:a.cal||"\u2014"},{l:"Relative Effort",v:a.eff!=null?a.eff:"\u2014"}].map(s=><div key={s.l} style={{textAlign:"center"}}>
+              {/* Stats grid — 4 columns × 2 rows */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"12px 0"}}>
+                {[{l:"Distance",v:a.distance},{l:"Pace",v:a.pace},{l:"Moving Time",v:a.time},{l:"Elevation",v:a.elev},{l:"Calories",v:a.cal||"\u2014"},{l:"Avg Heart Rate",v:a.avg_hr?`${a.avg_hr} bpm`:"\u2014"},{l:"Max Heart Rate",v:a.max_hr?`${a.max_hr} bpm`:"\u2014"},{l:"Avg Cadence",v:a.avg_cadence?`${a.avg_cadence} spm`:"\u2014"}].map(s=><div key={s.l} style={{textAlign:"center"}}>
                   <div style={{fontSize:19,fontWeight:700,letterSpacing:"-0.02em"}}>{s.v}</div>
                   <div style={{fontSize:13,color:t.dim,fontWeight:500,marginTop:2}}>{s.l}</div>
                 </div>)}
