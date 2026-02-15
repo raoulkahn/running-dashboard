@@ -390,7 +390,11 @@ function App(){
   const DEFAULT_NOTES=[{id:1,text:"Superblast 3 launches March 1st"},{id:2,text:"Walnut Creek Run this Sunday - 8am"},{id:3,text:"Don\u2019t forget to sign up for SF Marathon"}];
   const [notesEnabled,setNotesEnabled]=useState(()=>{try{return localStorage.getItem("notesEnabled")!=="false";}catch(e){return true;}});
   const [userNotes,setUserNotes]=useState(()=>{try{const s=localStorage.getItem("userNotes");return s?JSON.parse(s):DEFAULT_NOTES;}catch(e){return DEFAULT_NOTES;}});
-  const [noteModal,setNoteModal]=useState(null); // null | {id:null,text:""} (add) | {id:123,text:"..."} (edit)
+  const [showNotesModal,setShowNotesModal]=useState(false);
+  const [notesModalAdd,setNotesModalAdd]=useState(false); // open modal with blank note ready
+  const [editingNoteId,setEditingNoteId]=useState(null);
+  const [editingNoteText,setEditingNoteText]=useState("");
+  const [newNoteText,setNewNoteText]=useState("");
   const [confirmDeleteId,setConfirmDeleteId]=useState(null);
   const [showAllNotes,setShowAllNotes]=useState(false);
 
@@ -607,7 +611,7 @@ function App(){
         </div>
         <div>
           <h1 style={{margin:0,fontSize:30,fontWeight:700,letterSpacing:"-0.02em"}}>AI Run Partner</h1>
-          <div style={{fontSize:16,color:t.dim,marginTop:3,fontWeight:500}}>{demoMode?(APP_MODE==="demo"?"Interactive demo":"Demo mode"):connected?"Live from Strava":"Connecting to Strava\u2026"}</div>
+          <div style={{fontSize:16,color:t.dim,marginTop:3,fontWeight:500}}>{demoMode?(APP_MODE==="demo"?"Interactive demo":"Demo mode"):connected?"Live Fitness Data from Strava and Garmin":"Connecting to Strava\u2026"}</div>
         </div>
       </div>
       <div style={{display:"flex",gap:14,alignItems:"center"}}>
@@ -851,19 +855,17 @@ function App(){
       <div style={{display:"flex",flexDirection:"column",gap:20}}>
 
         {/* Profile + Predictions */}
-        <div style={anim(100)}>{!demoMode&&loadingProfile?<LoadingCard t={t} rows={3} label="PROFILE"/>:<div className="card-hover" style={{...crd,padding:"14px 20px"}}>
-          <div style={{display:"flex",alignItems:"center",gap:16}}>
-            {resolvedAvatar?<img src={resolvedAvatar} alt="" style={{width:52,height:52,borderRadius:8,objectFit:"cover",flexShrink:0,alignSelf:"flex-start"}}/>:demoMode&&<div style={{width:52,height:52,borderRadius:8,background:accent+"22",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,alignSelf:"flex-start"}}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <div style={anim(100)}>{!demoMode&&loadingProfile?<LoadingCard t={t} rows={3} label="PROFILE"/>:<div className="card-hover" style={{...crd,padding:"12px 20px"}}>
+          <div style={{display:"flex",alignItems:"flex-start",gap:14}}>
+            {resolvedAvatar?<img src={resolvedAvatar} alt="" style={{width:44,height:44,borderRadius:8,objectFit:"cover",flexShrink:0,marginTop:2}}/>:demoMode&&<div style={{width:44,height:44,borderRadius:8,background:accent+"22",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>}
-            <div style={{flex:1}}>
-              <div style={{fontWeight:700,fontSize:20,letterSpacing:"-0.01em"}}>{resolvedName}</div>
-              <div style={{fontSize:15,color:accent,marginTop:3,fontWeight:500,opacity:0.7}}>{resolvedLocation}</div>
-              <div style={{fontSize:14,color:t.dim,marginTop:5}}>2026 Total: <span style={{color:t.text,fontWeight:600}}>{resolvedYtdMiles} mi</span></div>
+            <div style={{flex:1,minWidth:0,paddingTop:2}}>
+              <div style={{fontWeight:700,fontSize:20,letterSpacing:"-0.01em",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{resolvedName}</div>
+              <div style={{fontSize:15,color:accent,marginTop:2,fontWeight:500,opacity:0.7,whiteSpace:"nowrap"}}>{resolvedLocation}</div>
             </div>
             <div style={{textAlign:"center",flexShrink:0}}>
-              <Gauge value={vo2} size={78} trackColor={t.border} textColor={t.text} dimColor={t.dim} animate={mounted}/>
-              <div style={{fontSize:10,color:t.dim,marginTop:-2,opacity:0.5,fontWeight:500}}>Powered by Garmin</div>
+              <Gauge value={vo2} size={72} trackColor={t.border} textColor={t.text} dimColor={t.dim} animate={mounted}/>
             </div>
           </div>
         </div>}</div>
@@ -872,26 +874,16 @@ function App(){
         {notesEnabled&&userNotes.length>0&&<div style={anim(150)}><div className="card-hover" style={crd}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
             <div style={lbl}>NOTES</div>
-            <button onClick={()=>setNoteModal({id:null,text:""})} style={{background:"none",border:"none",cursor:"pointer",padding:2,display:"flex",alignItems:"center"}} title="Add note">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <button onClick={()=>{setEditingNoteId(null);setConfirmDeleteId(null);setShowNotesModal(true);}} style={{background:"none",border:"none",color:accent,fontSize:13,cursor:"pointer",fontWeight:600,fontFamily:fontStack}}>Edit</button>
+              <button onClick={()=>{setNotesModalAdd(true);setEditingNoteId(null);setConfirmDeleteId(null);setNewNoteText("");setShowNotesModal(true);}} style={{background:"none",border:"none",cursor:"pointer",padding:2,display:"flex",alignItems:"center"}} title="Add note">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            </div>
           </div>
           <div>
-            {(showAllNotes?userNotes:userNotes.slice(0,3)).map(note=><div key={note.id} className="item-hover" style={{display:"flex",alignItems:"flex-start",gap:8,padding:"8px 6px",borderRadius:6,borderBottom:`1px solid ${t.border}18`}}>
-                <div style={{flex:1,fontSize:14,color:t.text,lineHeight:1.5}}>{note.text}</div>
-                <div style={{display:"flex",gap:4,flexShrink:0}}>
-                  {confirmDeleteId===note.id?<>
-                    <button onClick={()=>{const updated=userNotes.filter(n=>n.id!==note.id);setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}setConfirmDeleteId(null);}} style={{background:"#ff6b6b",border:"none",borderRadius:4,color:"#fff",fontSize:11,fontWeight:600,padding:"2px 8px",cursor:"pointer",fontFamily:fontStack}}>Delete</button>
-                    <button onClick={()=>setConfirmDeleteId(null)} style={{background:"none",border:`1px solid ${t.border}`,borderRadius:4,color:t.dim,fontSize:11,fontWeight:500,padding:"2px 8px",cursor:"pointer",fontFamily:fontStack}}>Cancel</button>
-                  </>:<>
-                    <button onClick={()=>setNoteModal({id:note.id,text:note.text})} style={{background:"none",border:"none",cursor:"pointer",padding:2,opacity:0.7}} title="Edit">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.dimBright} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                    </button>
-                    <button onClick={()=>setConfirmDeleteId(note.id)} style={{background:"none",border:"none",cursor:"pointer",padding:2,opacity:0.7}} title="Delete">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.dimBright} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    </button>
-                  </>}
-                </div>
+            {(showAllNotes?userNotes:userNotes.slice(0,3)).map(note=><div key={note.id} className="item-hover" style={{padding:"8px 6px",borderRadius:6,borderBottom:`1px solid ${t.border}18`}}>
+              <div style={{fontSize:14,color:t.text,lineHeight:1.5}}>{note.text}</div>
             </div>)}
           </div>
           {userNotes.length>3&&<div style={{textAlign:"center",marginTop:10}}>
@@ -1032,22 +1024,68 @@ function App(){
     {/* Map Modal */}
     {mapModal&&<MapModal polyline={mapModal} accent={accent} t={t} onClose={()=>setMapModal(null)}/>}
 
-    {/* Note Add/Edit Modal */}
-    {noteModal&&<div style={{position:"fixed",inset:0,zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <div onClick={()=>setNoteModal(null)} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.5)"}}/>
-      <div style={{position:"relative",background:t.card,border:`1px solid ${t.border}`,borderRadius:14,padding:24,width:400,maxWidth:"90vw",boxShadow:"0 12px 40px rgba(0,0,0,0.3)",zIndex:9001}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-          <div style={{fontSize:16,fontWeight:700,color:t.text}}>{noteModal.id?"Edit Note":"Add Note"}</div>
-          <button onClick={()=>setNoteModal(null)} style={{background:"none",border:"none",cursor:"pointer",padding:2}}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={t.dim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    {/* Notes Edit Modal */}
+    {showNotesModal&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.75)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,backdropFilter:"blur(4px)"}} onClick={()=>{setShowNotesModal(false);setNotesModalAdd(false);setEditingNoteId(null);setConfirmDeleteId(null);}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:t.card,borderRadius:18,padding:28,width:460,maxHeight:"80vh",border:`1px solid ${t.border}`,boxShadow:"0 24px 64px rgba(0,0,0,0.6)",display:"flex",flexDirection:"column"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+          <h3 style={{margin:0,fontSize:22,fontWeight:700,letterSpacing:"-0.02em"}}>Edit Notes</h3>
+          <button onClick={()=>{setShowNotesModal(false);setNotesModalAdd(false);setEditingNoteId(null);setConfirmDeleteId(null);}} style={{background:"none",border:"none",cursor:"pointer",padding:2}}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={t.dim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
-        <textarea value={noteModal.text} onChange={e=>setNoteModal(p=>({...p,text:e.target.value}))} autoFocus placeholder="Write a note..." rows={4} style={{width:"100%",background:isDark?"rgba(255,255,255,0.08)":t.input||"#f5f5f5",border:`1px solid ${t.border}`,borderRadius:8,padding:"10px 12px",fontSize:14,color:t.text,fontFamily:fontStack,outline:"none",resize:"vertical",lineHeight:1.5}}
-          onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey&&noteModal.text.trim()){e.preventDefault();if(noteModal.id){const updated=userNotes.map(n=>n.id===noteModal.id?{...n,text:noteModal.text.trim()}:n);setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}}else{const updated=[{id:Date.now(),text:noteModal.text.trim()},...userNotes];setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}}setNoteModal(null);}if(e.key==="Escape")setNoteModal(null);}}/>
-        <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:12}}>
-          <button onClick={()=>setNoteModal(null)} style={{background:"none",border:`1px solid ${t.border}`,borderRadius:8,color:t.dim,fontSize:13,fontWeight:500,padding:"7px 16px",cursor:"pointer",fontFamily:fontStack}}>Cancel</button>
-          <button onClick={()=>{if(noteModal.text.trim()){if(noteModal.id){const updated=userNotes.map(n=>n.id===noteModal.id?{...n,text:noteModal.text.trim()}:n);setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}}else{const updated=[{id:Date.now(),text:noteModal.text.trim()},...userNotes];setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}}setNoteModal(null);}}} style={{background:accent,border:"none",borderRadius:8,color:"#fff",fontSize:13,fontWeight:600,padding:"7px 16px",cursor:"pointer",fontFamily:fontStack}}>{noteModal.id?"Save":"Add"}</button>
+        <p style={{margin:"0 0 18px",fontSize:14,color:t.dim,fontWeight:500}}>Add, edit, or remove your running notes.</p>
+        <div style={{flex:1,overflowY:"auto",marginBottom:16}}>
+          {userNotes.map(note=><div key={note.id} style={{padding:"12px 0",borderBottom:`1px solid ${t.border}18`}}>
+            {editingNoteId===note.id?<div>
+              <textarea value={editingNoteText} onChange={e=>setEditingNoteText(e.target.value)} autoFocus rows={3} style={{width:"100%",background:isDark?"rgba(255,255,255,0.08)":t.input||"#f5f5f5",border:`1px solid ${t.border}`,borderRadius:8,padding:"10px 12px",fontSize:14,color:t.text,fontFamily:fontStack,outline:"none",resize:"vertical",lineHeight:1.5,boxSizing:"border-box"}}
+                onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey&&editingNoteText.trim()){e.preventDefault();const updated=userNotes.map(n=>n.id===note.id?{...n,text:editingNoteText.trim()}:n);setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}setEditingNoteId(null);}if(e.key==="Escape")setEditingNoteId(null);}}
+                onFocus={e=>e.currentTarget.style.borderColor=accent}
+                onBlur={e=>e.currentTarget.style.borderColor=t.border}/>
+              <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:8}}>
+                <button onClick={()=>setEditingNoteId(null)} style={{background:"none",border:`1px solid ${t.border}`,borderRadius:8,color:t.dim,fontSize:13,fontWeight:500,padding:"5px 14px",cursor:"pointer",fontFamily:fontStack}}>Cancel</button>
+                <button onClick={()=>{if(editingNoteText.trim()){const updated=userNotes.map(n=>n.id===note.id?{...n,text:editingNoteText.trim()}:n);setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}setEditingNoteId(null);}}} style={{background:accent,border:"none",borderRadius:8,color:"#fff",fontSize:13,fontWeight:600,padding:"5px 14px",cursor:"pointer",fontFamily:fontStack}}>Save</button>
+              </div>
+            </div>:<div style={{display:"flex",alignItems:"flex-start",gap:10}}>
+              <div style={{flex:1,fontSize:14,color:t.text,lineHeight:1.5,paddingTop:2}}>{note.text}</div>
+              <div style={{display:"flex",gap:4,flexShrink:0}}>
+                {confirmDeleteId===note.id?<>
+                  <button onClick={()=>{const updated=userNotes.filter(n=>n.id!==note.id);setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}setConfirmDeleteId(null);}} style={{background:"#ff6b6b",border:"none",borderRadius:6,color:"#fff",fontSize:12,fontWeight:600,padding:"4px 10px",cursor:"pointer",fontFamily:fontStack}}>Delete</button>
+                  <button onClick={()=>setConfirmDeleteId(null)} style={{background:"none",border:`1px solid ${t.border}`,borderRadius:6,color:t.dim,fontSize:12,fontWeight:500,padding:"4px 10px",cursor:"pointer",fontFamily:fontStack}}>Cancel</button>
+                </>:<>
+                  <button onClick={()=>{setEditingNoteId(note.id);setEditingNoteText(note.text);setConfirmDeleteId(null);}} style={{background:"none",border:"none",cursor:"pointer",padding:4,opacity:0.6,transition:"opacity 0.15s"}} title="Edit"
+                    onMouseEnter={e=>e.currentTarget.style.opacity="1"}
+                    onMouseLeave={e=>e.currentTarget.style.opacity="0.6"}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={t.dimBright} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button onClick={()=>{setConfirmDeleteId(note.id);setEditingNoteId(null);}} style={{background:"none",border:"none",cursor:"pointer",padding:4,opacity:0.6,transition:"opacity 0.15s"}} title="Delete"
+                    onMouseEnter={e=>e.currentTarget.style.opacity="1"}
+                    onMouseLeave={e=>e.currentTarget.style.opacity="0.6"}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={t.dimBright} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </>}
+              </div>
+            </div>}
+          </div>)}
+          {userNotes.length===0&&<div style={{textAlign:"center",padding:"20px 0",color:t.dim,fontSize:14}}>No notes yet</div>}
         </div>
+        {/* Add new note */}
+        {notesModalAdd?<div style={{borderTop:`1px solid ${t.border}`,paddingTop:14}}>
+          <textarea value={newNoteText} onChange={e=>setNewNoteText(e.target.value)} autoFocus placeholder="Write a note..." rows={3} style={{width:"100%",background:isDark?"rgba(255,255,255,0.08)":t.input||"#f5f5f5",border:`1px solid ${t.border}`,borderRadius:8,padding:"10px 12px",fontSize:14,color:t.text,fontFamily:fontStack,outline:"none",resize:"vertical",lineHeight:1.5,boxSizing:"border-box"}}
+            onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey&&newNoteText.trim()){e.preventDefault();const updated=[{id:Date.now(),text:newNoteText.trim()},...userNotes];setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}setNewNoteText("");setNotesModalAdd(false);}if(e.key==="Escape"){setNotesModalAdd(false);setNewNoteText("");}}}
+            onFocus={e=>e.currentTarget.style.borderColor=accent}
+            onBlur={e=>e.currentTarget.style.borderColor=t.border}/>
+          <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:8}}>
+            <button onClick={()=>{setNotesModalAdd(false);setNewNoteText("");}} style={{background:"none",border:`1px solid ${t.border}`,borderRadius:8,color:t.dim,fontSize:13,fontWeight:500,padding:"5px 14px",cursor:"pointer",fontFamily:fontStack}}>Cancel</button>
+            <button onClick={()=>{if(newNoteText.trim()){const updated=[{id:Date.now(),text:newNoteText.trim()},...userNotes];setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}setNewNoteText("");setNotesModalAdd(false);}}} style={{background:accent,border:"none",borderRadius:8,color:"#fff",fontSize:13,fontWeight:600,padding:"5px 14px",cursor:"pointer",fontFamily:fontStack}}>Add</button>
+          </div>
+        </div>:<div style={{borderTop:`1px solid ${t.border}`,paddingTop:14}}>
+          <button onClick={()=>{setNotesModalAdd(true);setEditingNoteId(null);setNewNoteText("");}} style={{display:"flex",alignItems:"center",gap:8,background:"none",border:`1px solid ${t.border}`,borderRadius:10,color:accent,fontSize:14,padding:"9px 18px",cursor:"pointer",fontWeight:600,fontFamily:fontStack,width:"100%",justifyContent:"center",transition:"border-color 0.15s"}}
+            onMouseEnter={e=>e.currentTarget.style.borderColor=accent}
+            onMouseLeave={e=>e.currentTarget.style.borderColor=t.border}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Note
+          </button>
+        </div>}
       </div>
     </div>}
   </div>

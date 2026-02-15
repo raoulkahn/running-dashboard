@@ -50,9 +50,14 @@ Flask backend + React frontend (single-page, inline styles).
 ## Post-Launch Polish (Completed)
 - App renamed from "Running Dashboard" to "AI Run Partner"
 - Theme system: 12 themes (5 dark, 3 mid-tone pastel, 4 light), two-tone complementary accent colors
-- Neutral theme picker: white background, horizontal color rectangles (tint + accent), accent-colored selection border + checkmark, stays open for previewing, click outside to close
+- Settings panel: cog icon opens single-column modal (300px) with 2-column theme grid, Activity Display toggle (Compact/Expanded), Notes on/off toggle
+- Neutral theme picker: white background, 2-column grid of color rectangles (tint + accent), accent-colored selection border + checkmark, stays open for previewing, click outside to close
 - Real Strava polylines for demo maps (replaced synthetic data)
-- Demo data: DJ Run profile, 16 shoes (show 4 default), activity notes/descriptions
+- Demo data: DJ Run profile, 16 shoes (show 4 default), activity notes/descriptions, HR/cadence data for all 5 activities
+- Profile card: Strava avatar (left), name+location (center), VO2 gauge (right), top-aligned; demo mode shows placeholder user icon
+- Page subtitle: "Live Fitness Data from Strava and Garmin" (connected state)
+- Notes feature: CRUD notes system with sidebar display, dedicated edit modal (add/edit/delete with confirmation), 3 default example notes, localStorage persistence, toggle on/off from settings
+- Activity card compact mode: hides splits+map by default, per-card "Show Splits and Map" expand, localStorage persistence, auto-scroll on mode toggle
 - Theme persistence via localStorage (survives page refresh, fallback to "ocean" if saved theme removed)
 - Smooth theme transitions: global CSS `*{transition}` for color/background/border at 1.8s
 - Loading skeleton shimmer, demo info banner (dismissable)
@@ -69,7 +74,8 @@ Flask backend + React frontend (single-page, inline styles).
 - ONE RUN PER DAY: explicit "RAN TODAY" field in context, never suggest more running after a run
 - 3-day recency rule: never reference specific past runs older than 3 days
 - Mileage honesty: no guilt-tripping, no "tackle/make up/salvage" language
-- Weather-aware: rain tomorrow = rest day, don't push running in bad weather
+- Weather-aware: rain tomorrow = rest day, don't push running in bad weather, hourly rain window awareness (suggest dry windows instead of writing off full day)
+- Rain grammar: "X% chance of rain" not "X% rain chance"; 100% = "rain all day"
 - Weigh-in reminders on Mon/Thu/Sun if bullet space allows
 - Multiple runs in a day: reference total daily mileage only, don't call any a "warm-up"
 - Week boundaries: Mon-Sun separation in build_context(), correct current vs previous week
@@ -150,8 +156,8 @@ Total estimate: 2-3 days. API cost: ~400 Claude API calls per run (200 scenarios
 - Update the demo's hardcoded AI assistant message to match the new format: 1-2 sentence opening line + bulleted list of suggestions
 - Keep it consistent with the personal/live AI assistant output style
 
-### Settings Panel & Layout Customization
-- Collapsible activity cards: default to compact view (title, stats, heart rate, notes) with expand button to reveal map and splits. Saves vertical space with multiple activities.
+### Settings Panel & Layout Customization (Partially Complete)
+- ~~Collapsible activity cards~~ — DONE: compact/expanded toggle in settings with per-card expand
 - Reorderable right sidebar: allow user to set vertical order of Weather, Weekly Run Plan, and Shoes sections via settings panel or drag-and-drop
 - Store all preferences in localStorage
 - Personal and demo app
