@@ -18,17 +18,14 @@ const THEMES = {
   strava:     { name:"Strava Dark",  tint:"#141418", accent:"#FC4C02", accent2:"#00b4d8", bg:"linear-gradient(170deg,#040404 0%,#0c0c12 50%,#181820 100%)", card:"#141418", card2:"#1a1a1e", border:"#2a2a30", input:"#101014", text:"#e2e8f0", dim:"#7a7a84", dimBright:"#9a9aa4", swatch:"#FC4C02" },
   forest:     { name:"Forest Dark",  tint:"#0c1e18", accent:"#06d6a0", accent2:"#f472b6", bg:"linear-gradient(170deg,#010a06 0%,#081c14 50%,#122c22 100%)", card:"#0c1e18", card2:"#102620", border:"#184034", input:"#091610", text:"#e2e8f0", dim:"#5a8a78", dimBright:"#7aaa98", swatch:"#06d6a0" },
   slate:      { name:"Slate",        tint:"#16181e", accent:"#94a3b8", accent2:"#a78bfa", bg:"linear-gradient(170deg,#060708 0%,#121620 50%,#1c2030 100%)", card:"#16181e", card2:"#1c1e26", border:"#2a2e38", input:"#101214", text:"#e2e8f0", dim:"#64748b", dimBright:"#8494a7", swatch:"#94a3b8" },
-  // ── Mid-tone (5) — soft muted pastels ──
+  // ── Mid-tone (3) — soft muted pastels ──
   storm:      { name:"Storm",        tint:"#c4d8ec", accent:"#4a90d8", accent2:"#e8a04a", bg:"linear-gradient(170deg,#d8e8f4 0%,#c4d8ec 50%,#b0c8e0 100%)", card:"#e0eaf4", card2:"#d4e2f0", border:"#b0c4d8", input:"#d0deec", text:"#1c2a3a", dim:"#6080a0", dimBright:"#7898b8", swatch:"#4a90d8" },
   twilight:   { name:"Twilight",     tint:"#d4c8e8", accent:"#8b6fd8", accent2:"#e8a84a", bg:"linear-gradient(170deg,#e4ddf0 0%,#d4c8e8 50%,#c4b4dc 100%)", card:"#ece6f4", card2:"#e2daf0", border:"#c4b4d8", input:"#ddd4ec", text:"#221a30", dim:"#7a6ea0", dimBright:"#9488b8", swatch:"#8b6fd8" },
   fog:        { name:"Fog",          tint:"#c8dcd4", accent:"#2ea88a", accent2:"#d86858", bg:"linear-gradient(170deg,#dae8e2 0%,#c8dcd4 50%,#b4d0c6 100%)", card:"#e4ede8", card2:"#d8e6e0", border:"#b0c8be", input:"#d0e0d8", text:"#1a2c24", dim:"#6a8a7c", dimBright:"#84a496", swatch:"#2ea88a" },
-  ember:      { name:"Ember",        tint:"#ecdcc8", accent:"#d87830", accent2:"#2ea888", bg:"linear-gradient(170deg,#f4e8d8 0%,#ecdcc8 50%,#e0ccb4 100%)", card:"#f6ece0", card2:"#f0e4d8", border:"#dcc4a8", input:"#eedcd0", text:"#2a1e14", dim:"#9a8268", dimBright:"#b09880", swatch:"#d87830" },
-  dusk:       { name:"Dusk",         tint:"#dcccd8", accent:"#8868c0", accent2:"#e8944a", bg:"linear-gradient(170deg,#e8dce2 0%,#dcccd8 50%,#d0bccc 100%)", card:"#f0e6ec", card2:"#e8dce4", border:"#ccb8c4", input:"#e4d4dc", text:"#2a1e24", dim:"#8a7480", dimBright:"#a08c98", swatch:"#8868c0" },
-  // ── Light (5) ──
+  // ── Light (4) ──
   stravaLight:{ name:"Strava Light", tint:"#f0e8e0", accent:"#FC4C02", accent2:"#0891b2", bg:"linear-gradient(170deg,#faf6f2 0%,#f0e8e0 50%,#e2d6ca 100%)", card:"#ffffff", card2:"#f8f7f6", border:"#d8d4d0", input:"#f2f0ee", text:"#1a1a1a", dim:"#6b6b6b", dimBright:"#8a8a8a", swatch:"#FC4C02" },
   oceanLight: { name:"Ocean Light",  tint:"#dceaf8", accent:"#0891b2", accent2:"#e07028", bg:"linear-gradient(170deg,#f0f8fe 0%,#dceaf8 50%,#c8daf0 100%)", card:"#ffffff", card2:"#f2f8fb", border:"#c4dce8", input:"#edf4f8", text:"#1a2430", dim:"#5a7a8a", dimBright:"#7a9aaa", swatch:"#0891b2" },
   forestLight:{ name:"Forest Light", tint:"#dcf0e4", accent:"#059669", accent2:"#d46b08", bg:"linear-gradient(170deg,#eef8f2 0%,#dcf0e4 50%,#c8e4d2 100%)", card:"#ffffff", card2:"#f2f9f6", border:"#c0ddd0", input:"#ecf5f0", text:"#1a2a22", dim:"#5a8a70", dimBright:"#7aaa90", swatch:"#059669" },
-  sunsetLight:{ name:"Sunset Light", tint:"#f4e2d0", accent:"#e07028", accent2:"#7c3aed", bg:"linear-gradient(170deg,#fef4ea 0%,#f4e2d0 50%,#e8d0b4 100%)", card:"#ffffff", card2:"#faf6f2", border:"#e4d4c4", input:"#f6f0ea", text:"#2a2018", dim:"#8a7a6a", dimBright:"#a09080", swatch:"#e07028" },
   minimalGray:{ name:"Minimal Gray", tint:"#e4e8ee", accent:"#64748b", accent2:"#0891b2", bg:"linear-gradient(170deg,#f2f4f8 0%,#e4e8ee 50%,#d4dae4 100%)", card:"#ffffff", card2:"#f6f7f9", border:"#d4d8e0", input:"#f0f1f4", text:"#1a1e2a", dim:"#6b7280", dimBright:"#8b929f", swatch:"#64748b" },
 };
 
@@ -137,38 +134,48 @@ const ALL_SHOES = [
   { name:"Nike Vaporfly Next 2", miles:0, max:300 },
 ];
 
-function Bar({current,max,color,h=8,border,animate}){
+function Bar({current,max,color,h=8,border,animate,delay=0}){
   const pct=max>0?Math.min((current/max)*100,100):0;
   return <div style={{background:border||"#1e2d3d",borderRadius:h/2,height:h,width:"100%",overflow:"hidden"}}>
-    <div style={{width:animate===false?"0%":`${pct}%`,height:"100%",background:color,borderRadius:h/2,transition:"width 0.6s ease"}}/>
+    <div style={{width:animate===false?"0%":`${pct}%`,height:"100%",background:color,borderRadius:h/2,transition:`width 0.6s ease ${delay}s`}}/>
   </div>;
 }
 
-function ShoeBar({miles,max=300,border,animate}){
+function ShoeBar({miles,max=300,border,animate,delay=0}){
   const m=max>0?max:300;
   const pct=(miles/m)*100;
   const color=pct>80?B.coral:pct>60?B.gold:B.green;
-  return <Bar current={miles} max={m} color={color} h={4} border={border} animate={animate}/>;
+  return <Bar current={miles} max={m} color={color} h={4} border={border} animate={animate} delay={delay}/>;
 }
 
-function Gauge({value,size=80,trackColor="#1e2d3d",textColor="#e2e8f0",dimColor="#64748b"}){
+function Gauge({value,size=80,trackColor="#1e2d3d",textColor="#e2e8f0",dimColor="#64748b",animate}){
   const pct=Math.min(value/60,1),ang=-135+(pct*270),r=42,cx=50,cy=50;
   const rad=d=>(d*Math.PI)/180;
   const arc=(s,e)=>{const sa=rad(s-90),ea=rad(e-90);return`M ${cx+r*Math.cos(sa)} ${cy+r*Math.sin(sa)} A ${r} ${r} 0 ${e-s>180?1:0} 1 ${cx+r*Math.cos(ea)} ${cy+r*Math.sin(ea)}`;};
+  const fullArc=arc(-135,135);
+  const filledArc=arc(-135,ang);
+  const filledLen=r*(pct*270*Math.PI/180);
+  const [animReady,setAnimReady]=React.useState(false);
+  React.useEffect(()=>{if(animate!==false){const id=setTimeout(()=>setAnimReady(true),50);return()=>clearTimeout(id);}},[animate]);
   return <svg width={size} height={size} viewBox="0 0 100 100">
-    <path d={arc(-135,135)} fill="none" stroke={trackColor} strokeWidth="6" strokeLinecap="round"/>
-    <path d={arc(-135,ang)} fill="none" stroke={B.green} strokeWidth="6" strokeLinecap="round"/>
+    <path d={fullArc} fill="none" stroke={trackColor} strokeWidth="6" strokeLinecap="round"/>
+    <path d={filledArc} fill="none" stroke={B.green} strokeWidth="6" strokeLinecap="round"
+      style={{strokeDasharray:filledLen,strokeDashoffset:animReady?0:filledLen,transition:animReady?"stroke-dashoffset 0.8s ease-out":"none"}}/>
     <text x="50" y="47" textAnchor="middle" fill={textColor} fontSize="24" fontWeight="700" fontFamily={fontStack}>{value}</text>
     <text x="50" y="64" textAnchor="middle" fill={dimColor} fontSize="9" fontFamily={fontStack}>VO₂ Max</text>
   </svg>;
 }
 
-function DockDay({ d, accent, t, hovIdx, idx, setHov, activity }) {
+function DockDay({ d, accent, t, hovIdx, idx, setHov, activity, mounted }) {
   const isHov = hovIdx === idx;
   const scale = isHov ? 1.08 : 1;
   const bubbleBase = 24;
+  const [animDone,setAnimDone]=React.useState(false);
+  const animDelay = 350 + idx * 60;
+  React.useEffect(()=>{if(mounted){const id=setTimeout(()=>setAnimDone(true),animDelay+500);return()=>clearTimeout(id);}},[mounted]);
 
   return <div
+    className="dock-day"
     onMouseEnter={() => setHov(idx)}
     onMouseLeave={() => setHov(null)}
     style={{
@@ -177,12 +184,13 @@ function DockDay({ d, accent, t, hovIdx, idx, setHov, activity }) {
       borderRadius: 10,
       border: d.today ? `1px solid ${accent}25` : `1px solid ${t.border}`,
       transform: `scale(${scale})`,
-      transition: "transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
       cursor: "default",
       zIndex: isHov ? 10 : 1,
       position: "relative",
+      animation: mounted && !animDone ? `dayBounce 0.4s cubic-bezier(0.22,1,0.36,1) both` : "none",
+      animationDelay: mounted && !animDone ? `${animDelay}ms` : "0ms",
     }}>
-    {isHov && activity && <div style={{position:"absolute",bottom:"100%",left:"50%",transform:"translateX(-50%)",background:t.card2,border:`1px solid ${t.border}`,borderRadius:8,padding:"6px 10px",whiteSpace:"nowrap",fontSize:13,boxShadow:"0 4px 12px rgba(0,0,0,0.25)",zIndex:10,marginBottom:4,pointerEvents:"none"}}>
+    {activity && <div style={{position:"absolute",bottom:"100%",left:"50%",transform:"translateX(-50%)",background:t.card2,border:`1px solid ${t.border}`,borderRadius:8,padding:"6px 10px",whiteSpace:"nowrap",fontSize:13,boxShadow:"0 4px 12px rgba(0,0,0,0.25)",zIndex:10,marginBottom:4,pointerEvents:"none",opacity:isHov?1:0,transition:"opacity 0.2s ease"}}>
       <div style={{fontWeight:600,color:t.text}}>{activity.title}</div>
       <div style={{color:t.dim,marginTop:2}}>{activity.distance} · {activity.pace}</div>
     </div>}
@@ -360,14 +368,13 @@ function MapModal({ polyline, accent, t, onClose }) {
 const APP_MODE = (()=>{const p=new URLSearchParams(window.location.search).get("mode");return(p==="personal"||p==="demo"||p==="development")?p:(window.__APP_MODE__||"development");})();
 
 function App(){
-  const [themeKey,setThemeKey]=useState(()=>{try{return localStorage.getItem("themeKey")||"ocean";}catch(e){return "ocean";}});
+  const [themeKey,setThemeKey]=useState(()=>{try{const k=localStorage.getItem("themeKey");return k&&THEMES[k]?k:"ocean";}catch(e){return "ocean";}});
   const [showThemes,setShowThemes]=useState(false);
   const [acts,setActs]=useState(ACTIVITIES);
   const [showPlan,setShowPlan]=useState(false);
   const [loc,setLoc]=useState("Concord");
   const [showMore,setShowMore]=useState(false);
   const [vo2,setVo2]=useState(52);
-  const [editVo2,setEditVo2]=useState(false);
   const [plan,setPlan]=useState(PLAN_DEFAULTS);
   const [tmp,setTmp]=useState(null);
   const [showAllShoes,setShowAllShoes]=useState(false);
@@ -416,7 +423,7 @@ function App(){
       .finally(()=>setLoadingProfile(false));
     setLoadingActivities(true);
     fetch("/api/activities").then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
-      .then(d=>{if(d.error)throw new Error(d.error);setLiveActivities(d.activities);setLiveWeekDays(d.weekDays);setLiveTotalMi(d.totalMi);setLiveGoalMi(d.goalMi);})
+      .then(d=>{if(d.error)throw new Error(d.error);setLiveActivities(d.activities);setLiveWeekDays(d.weekDays);setLiveTotalMi(d.totalMi);setLiveGoalMi(d.goalMi);if(d.vo2!=null)setVo2(d.vo2);})
       .catch(e=>setApiError(p=>(p?p+"; ":"")+"Activities: "+e.message))
       .finally(()=>setLoadingActivities(false));
     setLoadingWeeks(true);
@@ -484,6 +491,7 @@ function App(){
   const t=THEMES[themeKey];
   useEffect(()=>{document.documentElement.style.background=t.card;document.body.style.background=t.card;},[themeKey]);
   const isDark=["midnight","ocean","strava","forest","slate"].includes(themeKey);
+  const isLight=["stravaLight","oceanLight","forestLight","minimalGray"].includes(themeKey);
   const accent=t.accent;
   const accent2=t.accent2||t.accent;
   const totalMi=demoMode?26.2:liveTotalMi, goalMi=demoMode?(liveGoalMi||50):liveGoalMi;
@@ -527,9 +535,9 @@ function App(){
     return (b.miles||0)-(a.miles||0);
   });
 
-  const crd={background:isDark?`linear-gradient(180deg,${t.card2} 0%,${t.card} 100%)`:t.card,borderRadius:14,padding:20,border:isDark?`1px solid rgba(255,255,255,0.06)`:`1px solid ${t.border}`,transition:"background 0.2s",minWidth:0,overflow:"hidden"};
+  const crd={background:isDark?`linear-gradient(180deg,${t.card2} 0%,${t.card} 100%)`:t.card,borderRadius:14,padding:20,border:isDark?`1px solid rgba(255,255,255,0.06)`:`1px solid ${t.border}`,minWidth:0,overflow:"hidden"};
   const lbl={fontSize:14,color:t.dim,textTransform:"uppercase",letterSpacing:"0.08em",fontWeight:600,marginBottom:0,fontFamily:fontStack};
-  const anim=(ms)=>({animation:"fadeSlideIn 0.45s ease both",animationDelay:`${ms}ms`});
+  const anim=(ms)=>({animation:"settleIn 0.55s cubic-bezier(0.22,1,0.36,1) both",animationDelay:`${ms}ms`});
 
   const rtColor=(name)=>{
     const rt=RUN_TYPES.find(r=>r.name===name);
@@ -572,19 +580,19 @@ function App(){
     </div>;
   };
 
-  const visibleShoes = showAllShoes ? sortedShoes : sortedShoes.slice(0,7);
+  const visibleShoes = showAllShoes ? sortedShoes : sortedShoes.slice(0,4);
 
   return <div style={{background:t.bg,minHeight:"100vh",color:t.text,fontFamily:fontStack,transition:"background 0.35s ease"}}>
   <div style={{maxWidth:1200,margin:"0 auto",padding:"28px 36px"}}>
 
     {/* Google Fonts */}
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <style>{`@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}} @keyframes spin{to{transform:rotate(360deg)}} @keyframes fadeSlideIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}} *{transition:color 1.8s ease,background-color 1.8s ease,border-color 1.8s ease,background 1.8s ease} .card-hover{transition:transform 0.3s ease-in-out,box-shadow 0.3s ease-in-out} .card-hover:hover{transform:scale(1.008);box-shadow:0 4px 20px rgba(0,0,0,0.12)} .weather-scroll::-webkit-scrollbar{width:4px} .weather-scroll::-webkit-scrollbar-track{background:transparent} .weather-scroll::-webkit-scrollbar-thumb{background:${t.border};border-radius:4px} .leaflet-container{background:#e6e5e3!important} .splits-scroll::-webkit-scrollbar{width:4px} .splits-scroll::-webkit-scrollbar-track{background:transparent} .splits-scroll::-webkit-scrollbar-thumb{background:${t.border};border-radius:4px}`}</style>
+    <style>{`@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}} @keyframes spin{to{transform:rotate(360deg)}} @keyframes fadeSlideIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}} @keyframes settleIn{from{opacity:0;transform:translateY(12px) scale(0.995)}70%{opacity:1;transform:translateY(-2px) scale(1.001)}to{opacity:1;transform:translateY(0) scale(1)}} @keyframes dayBounce{0%{opacity:0;transform:scale(0.85)}50%{opacity:1;transform:scale(1.06)}75%{transform:scale(0.97)}100%{opacity:1;transform:scale(1)}} @keyframes spinOnce{from{transform:rotate(0deg)}to{transform:rotate(360deg)}} *{transition:color 1.8s ease,background-color 1.8s ease,border-color 1.8s ease,background 1.8s ease} .dock-day{transition:transform 0.2s cubic-bezier(0.25,0.46,0.45,0.94),background-color 0.15s ease,color 1.8s ease,border-color 1.8s ease} .dock-day:hover{background-color:${isDark?"rgba(255,255,255,0.06)":isLight?"rgba(0,0,0,0.08)":"rgba(0,0,0,0.04)"}} .card-hover{transition:filter 0.15s ease,box-shadow 0.15s ease,transform 0.6s ease 0.4s,color 1.8s ease,background 1.8s ease,border-color 1.8s ease} .card-hover:hover{filter:brightness(${isLight?"0.95":isDark?"1.06":"1.02"});box-shadow:0 4px 20px rgba(0,0,0,${isLight?"0.08":"0.08"});transform:translateY(-2px)} .item-hover{transition:background-color 0.15s ease,transform 0.6s ease 0.4s,color 1.8s ease,border-color 1.8s ease} .item-hover:hover{background-color:${isDark?"rgba(255,255,255,0.04)":isLight?"rgba(0,0,0,0.07)":"rgba(0,0,0,0.025)"};transform:translateX(3px)} .weather-row{transition:background-color 0.15s ease,transform 0.6s ease 0.4s} .weather-row:hover{background-color:${isDark?"rgba(255,255,255,0.04)":isLight?"rgba(0,0,0,0.07)":"rgba(0,0,0,0.025)"};transform:translateX(3px)} .pulse-icon-wrap{display:flex;align-items:center;justify-content:center} .pulse-icon-wrap svg{transition:transform 0.01s} .pulse-icon-wrap:hover svg{animation:spinOnce 0.6s ease-in-out} .weather-scroll::-webkit-scrollbar{width:4px} .weather-scroll::-webkit-scrollbar-track{background:transparent} .weather-scroll::-webkit-scrollbar-thumb{background:${t.border};border-radius:4px} .leaflet-container{background:#e6e5e3!important} .splits-scroll::-webkit-scrollbar{width:4px} .splits-scroll::-webkit-scrollbar-track{background:transparent} .splits-scroll::-webkit-scrollbar-thumb{background:${t.border};border-radius:4px}`}</style>
 
     {/* Header */}
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:28}}>
       <div style={{display:"flex",alignItems:"center",gap:14}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"center",width:42,height:42,borderRadius:12,background:accent+"15",border:`1px solid ${accent}22`}}>
+        <div className="pulse-icon-wrap" style={{width:42,height:42,borderRadius:12,background:accent+"15",border:`1px solid ${accent}22`,cursor:"default"}}>
           <PulseIcon size={22} color={accent}/>
         </div>
         <div>
@@ -606,9 +614,9 @@ function App(){
               <div key={i} style={{width:8,height:8,borderRadius:"50%",background:c}}/>
             )}
           </button>
-          {showThemes&&<div style={{position:"absolute",top:42,right:0,background:"#ffffff",border:"1px solid #d4d4d4",borderRadius:12,padding:"12px 8px 8px",boxShadow:"0 8px 32px rgba(0,0,0,0.2),0 2px 8px rgba(0,0,0,0.1)",zIndex:100,width:240}}>
+          {showThemes&&<><div onClick={()=>setShowThemes(false)} style={{position:"fixed",inset:0,zIndex:99}}/><div style={{position:"absolute",top:42,right:0,background:"#ffffff",border:"1px solid #d4d4d4",borderRadius:12,padding:"12px 8px 8px",boxShadow:"0 8px 32px rgba(0,0,0,0.2),0 2px 8px rgba(0,0,0,0.1)",zIndex:100,width:240}}>
             <div style={{fontSize:11,fontWeight:700,color:"#888",textTransform:"uppercase",letterSpacing:"0.08em",padding:"0 6px 8px",borderBottom:"1px solid #eee",marginBottom:4}}>Choose a Theme</div>
-            {["midnight","ocean","strava","forest","slate","storm","twilight","fog","ember","dusk","stravaLight","oceanLight","forestLight","sunsetLight","minimalGray"].map(key=>{const th=THEMES[key];const isA=themeKey===key;return(
+            {["midnight","ocean","strava","forest","slate","storm","twilight","fog","stravaLight","oceanLight","forestLight","minimalGray"].map(key=>{const th=THEMES[key];const isA=themeKey===key;return(
               <button key={key} onClick={()=>{if(key===themeKey)return;try{localStorage.setItem("themeKey",key);}catch(e){}setThemeKey(key);}} style={{display:"flex",alignItems:"center",gap:8,width:"100%",padding:"5px 6px",borderRadius:7,border:isA?`2px solid ${th.accent}`:"2px solid transparent",background:isA?th.accent+"14":"transparent",cursor:"pointer",transition:"all 0.12s"}}
                 onMouseEnter={e=>{if(!isA)e.currentTarget.style.background="#f5f5f5";}}
                 onMouseLeave={e=>{if(!isA)e.currentTarget.style.background="transparent";}}>
@@ -619,7 +627,7 @@ function App(){
                 <span style={{fontSize:13,color:isA?"#1a1a1a":"#555",fontWeight:isA?600:400,fontFamily:fontStack,flex:1,textAlign:"left"}}>{th.name}</span>
                 {isA&&<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={th.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>}
               </button>);})}
-          </div>}
+          </div></>}
         </div>
       </div>
     </div>
@@ -673,10 +681,10 @@ function App(){
             <button onClick={saveGoal} style={{padding:"6px 14px",borderRadius:8,border:"none",background:accent,color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:fontStack}}>Save</button>
             <button onClick={()=>setEditGoal(false)} style={{background:"none",border:"none",color:t.dim,fontSize:13,cursor:"pointer",fontFamily:fontStack}}>Cancel</button>
           </div>;})()}
-          {goalMi>0&&<Bar current={totalMi} max={goalMi} color={accent} border={t.border} animate={mounted}/>}
+          {goalMi>0&&<Bar current={totalMi} max={goalMi} color={B.green} border={t.border} animate={mounted}/>}
 
           <div style={{display:"flex",justifyContent:"space-between",marginTop:22,gap:4}}>
-            {(()=>{const dam={};resolvedWeekDays.forEach((d,i)=>{if(d.miles>0){const m=acts.find(a=>{const ad=new Date((a.start_date_local||"").replace("Z",""));return ad.getDate()===d.date;});if(m)dam[i]=m;}});return resolvedWeekDays.map((d,i)=><DockDay key={d.day} d={d} accent={accent} t={t} hovIdx={hovDay} idx={i} setHov={setHovDay} activity={dam[i]}/>);})()}
+            {(()=>{const dam={};resolvedWeekDays.forEach((d,i)=>{if(d.miles>0){const m=acts.find(a=>{const ad=new Date((a.start_date_local||"").replace("Z",""));return ad.getDate()===d.date;});if(m)dam[i]=m;}});return resolvedWeekDays.map((d,i)=><DockDay key={d.day} d={d} accent={accent} t={t} hovIdx={hovDay} idx={i} setHov={setHovDay} activity={dam[i]} mounted={mounted}/>);})()}
           </div>
 
           <div style={{textAlign:"center",marginTop:14}}>
@@ -687,7 +695,7 @@ function App(){
             </button>
           </div>
 
-          {showMore&&(!demoMode&&loadingWeeks?<LoadingCard t={t} rows={3} label="PAST WEEKS"/>:resolvedPastWeeks.map((w,i)=><div key={i} className="card-hover" style={{marginTop:i===0?16:0,padding:"14px 0",borderTop:`1px solid ${t.border}`,borderRadius:8}}>
+          {showMore&&(!demoMode&&loadingWeeks?<LoadingCard t={t} rows={3} label="PAST WEEKS"/>:resolvedPastWeeks.map((w,i)=><div key={i} className="item-hover" style={{marginTop:i===0?16:0,padding:"14px 0",borderTop:`1px solid ${t.border}`,borderRadius:8}}>
             <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
               <span style={{fontSize:16,fontWeight:600}}>{w.label}</span>
               <span style={{fontSize:15,color:t.dim,fontWeight:500}}>{w.miles} mi · {w.time}</span>
@@ -706,7 +714,7 @@ function App(){
         <div style={anim(300)}>{!demoMode&&loadingActivities?<LoadingCard t={t} rows={5} label="RECENT ACTIVITIES"/>:<div>
           <div style={{...lbl,marginBottom:14}}>RECENT ACTIVITIES</div>
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
-            {acts.map(a=><div key={a.id} className="card-hover" style={{...crd,transition:"border-color 0.2s, background 0.2s"}}>
+            {acts.map(a=><div key={a.id} className="card-hover" style={{...crd}}>
               {/* Line 1: Title + RunType */}
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:5,flexWrap:"wrap"}}>
                 <span style={{fontWeight:700,fontSize:18,letterSpacing:"-0.01em"}}>{a.title}</span>
@@ -781,7 +789,7 @@ function App(){
       <div style={{display:"flex",flexDirection:"column",gap:20}}>
 
         {/* Profile + Predictions */}
-        <div style={anim(100)}>{!demoMode&&loadingProfile?<LoadingCard t={t} rows={3} label="PROFILE"/>:<div className="card-hover" style={{...crd,padding:"14px 20px",transition:"background 0.2s"}}>
+        <div style={anim(100)}>{!demoMode&&loadingProfile?<LoadingCard t={t} rows={3} label="PROFILE"/>:<div className="card-hover" style={{...crd,padding:"14px 20px"}}>
           <div style={{display:"flex",alignItems:"center",gap:16}}>
             <div style={{flex:1}}>
               <div style={{fontWeight:700,fontSize:20,letterSpacing:"-0.01em"}}>{resolvedName}</div>
@@ -789,13 +797,7 @@ function App(){
               <div style={{fontSize:14,color:t.dim,marginTop:5}}>2026 Total: <span style={{color:t.text,fontWeight:600}}>{resolvedYtdMiles} mi</span></div>
             </div>
             <div style={{textAlign:"center",flexShrink:0}}>
-              {editVo2?<div style={{display:"flex",flexDirection:"column",gap:4,alignItems:"center"}}>
-                <input type="number" value={vo2} onChange={e=>setVo2(Number(e.target.value))} style={{width:50,background:t.input,border:`1px solid ${t.border}`,borderRadius:6,color:t.text,padding:"5px",fontSize:16,textAlign:"center",fontFamily:fontStack}}/>
-                <button onClick={()=>setEditVo2(false)} style={{background:B.green,border:"none",borderRadius:6,color:"#0b1219",padding:"4px 12px",fontSize:12,cursor:"pointer",fontWeight:700}}>Save</button>
-              </div>:
-              <div onClick={()=>setEditVo2(true)} style={{cursor:"pointer"}} title="Click to edit">
-                <Gauge value={vo2} size={78} trackColor={t.border} textColor={t.text} dimColor={t.dim}/>
-              </div>}
+              <Gauge value={vo2} size={78} trackColor={t.border} textColor={t.text} dimColor={t.dim} animate={mounted}/>
               <div style={{fontSize:10,color:t.dim,marginTop:-2,opacity:0.5,fontWeight:500}}>Powered by Garmin</div>
             </div>
           </div>
@@ -815,7 +817,7 @@ function App(){
                 const items=[];
                 const off=w.dayOffset!=null?w.dayOffset:0;
                 if(off!==lastOff){lastOff=off;const label=_dn[(new Date().getDay()+off)%7];items.push(<div key={"dh-"+off} style={{padding:"8px 0 4px",fontSize:12,fontWeight:700,color:accent,textTransform:"uppercase",letterSpacing:"0.08em",borderBottom:`1px solid ${t.border}33`}}>{label}</div>);}
-                items.push(<div key={i} style={{display:"flex",alignItems:"center",padding:"9px 0",borderBottom:`1px solid ${t.border}18`,fontSize:15}}>
+                items.push(<div key={i} className="weather-row" style={{display:"flex",alignItems:"center",padding:"9px 0",borderBottom:`1px solid ${t.border}18`,fontSize:15,borderRadius:4}}>
                   <span style={{width:"28%",color:t.dim,fontWeight:500,whiteSpace:"nowrap"}}>{w.time}</span>
                   <span style={{width:"10%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>{w.type==="sun"?<SunIcon size={16}/>:<CloudSunIcon size={16} bgFill={t.card}/>}</span>
                   <span style={{width:"22%",fontWeight:700,textAlign:"right",color:w.temp>=45&&w.temp<=70?B.green:B.coral,whiteSpace:"nowrap"}}>{w.temp}°</span>
@@ -835,15 +837,15 @@ function App(){
             <div style={lbl}>WEEKLY RUN PLAN</div>
             <button onClick={()=>{setTmp(plan.map(p=>({...p})));setShowPlan(true);}} style={{background:"none",border:"none",color:accent,fontSize:13,cursor:"pointer",fontWeight:600,fontFamily:fontStack}}>Edit</button>
           </div>
-          {(()=>{const totalPlanned=plan.reduce((s,p)=>s+p.count,0);const totalDone=plan.reduce((s,p)=>s+Math.min(runTypeCounts[p.type]||0,p.count),0);const pct=totalPlanned?Math.round((totalDone/totalPlanned)*100):0;return <div style={{marginBottom:14}}>
+          {(()=>{const activePlan=plan.filter(p=>p.count>0);const totalPlanned=activePlan.reduce((s,p)=>s+p.count,0);const totalDone=activePlan.reduce((s,p)=>s+Math.min(runTypeCounts[p.type]||0,p.count),0);const pct=totalPlanned?Math.round((totalDone/totalPlanned)*100):0;return <div style={{marginBottom:14}}>
             <div style={{textAlign:"right",fontSize:13,color:t.dim,fontWeight:500,marginBottom:6}}>{pct}%</div>
-            <Bar current={totalDone} max={totalPlanned} color={totalDone>=totalPlanned?B.green:accent} h={6} border={t.border} animate={mounted}/>
+            <Bar current={totalDone} max={totalPlanned} color={B.green} h={6} border={t.border} animate={mounted}/>
           </div>;})()}
-          {plan.map((p,i)=>{
+          {plan.filter(p=>p.count>0).map((p,i)=>{
             const color=rtColor(p.type);
             const completed=runTypeCounts[p.type]||0;
             const done=completed>=p.count;
-            return <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 0",borderBottom:`1px solid ${t.border}18`,opacity:done?0.65:1,transition:"opacity 0.2s"}}>
+            return <div key={i} className="item-hover" style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 0",borderBottom:`1px solid ${t.border}18`,opacity:done?0.65:1}}>
               <div style={{display:"flex",alignItems:"center",gap:8}}>
                 <div style={{width:8,height:8,borderRadius:"50%",background:color,flexShrink:0,alignSelf:p.notes?"flex-start":"center",marginTop:p.notes?3:0}}/>
                 <div>
@@ -861,7 +863,7 @@ function App(){
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
             <span style={lbl}>MY SHOES</span>
           </div>
-          {visibleShoes.map(s=>{const shoeKey=s.id||s.name;const isFav=favoriteShoes.includes(shoeKey);return <div key={s.name} style={{marginBottom:18}}>
+          {visibleShoes.map((s,si)=>{const shoeKey=s.id||s.name;const isFav=favoriteShoes.includes(shoeKey);return <div key={s.name} className="item-hover" style={{marginBottom:18,padding:"4px 0",borderRadius:6}}>
             <div style={{display:"flex",justifyContent:"space-between",fontSize:14,marginBottom:3,alignItems:"center"}}>
               <div style={{display:"flex",alignItems:"center",gap:5,minWidth:0,flex:1}}>
                 <button onClick={()=>toggleFavorite(shoeKey)} style={{background:"none",border:"none",cursor:"pointer",padding:0,fontSize:16,lineHeight:1,color:isFav?B.gold:t.dim,transition:"color 0.15s",flexShrink:0}} title={isFav?"Remove favorite":"Add favorite"}>{isFav?"★":"☆"}</button>
@@ -869,10 +871,10 @@ function App(){
               </div>
               <span style={{color:t.dim,flexShrink:0,marginLeft:8,fontWeight:500}}>{Math.round(s.miles)}/{s.max} mi</span>
             </div>
-            <ShoeBar miles={s.miles} max={s.max} border={t.border} animate={mounted}/>
+            <ShoeBar miles={s.miles} max={s.max} border={t.border} animate={mounted} delay={si*0.08}/>
           </div>;})}
 
-          {sortedShoes.length>7&&<div style={{textAlign:"center",marginTop:14}}>
+          {sortedShoes.length>4&&<div style={{textAlign:"center",marginTop:14}}>
             <button onClick={()=>setShowAllShoes(!showAllShoes)} style={{background:"none",border:`1px solid ${t.border}`,borderRadius:8,color:accent,fontSize:14,padding:"7px 20px",cursor:"pointer",fontWeight:600,fontFamily:fontStack,transition:"border-color 0.2s"}}
               onMouseEnter={e=>e.currentTarget.style.borderColor=accent}
               onMouseLeave={e=>e.currentTarget.style.borderColor=t.border}>

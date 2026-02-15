@@ -160,6 +160,7 @@ def api_activities():
             "weekDays": week["weekDays"],
             "totalMi": week["totalMi"],
             "goalMi": week["goalMi"],
+            "vo2": settings.get("vo2", 52),
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
