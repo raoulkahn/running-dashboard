@@ -156,6 +156,11 @@ Total estimate: 2-3 days. API cost: ~400 Claude API calls per run (200 scenarios
 - Store all preferences in localStorage
 - Personal and demo app
 
+### UX Review Checkpoints
+- At key development milestones, seek UI/UX feedback from multiple AI tools (Figma Make, ChatGPT, Gemini) to uncover issues or improvements we may have missed
+- Use screenshots of current state for each review
+- Incorporate into the development workflow as a recurring checkpoint, not a one-time thing
+
 ### Other
 - Save Plan button disabled until changes made
 - Weather widget individual row cards (Figma style)
