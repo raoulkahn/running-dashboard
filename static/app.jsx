@@ -368,7 +368,7 @@ function MapModal({ polyline, accent, t, onClose }) {
 const APP_MODE = (()=>{const p=new URLSearchParams(window.location.search).get("mode");return(p==="personal"||p==="demo"||p==="development")?p:(window.__APP_MODE__||"development");})();
 
 function App(){
-  const [themeKey,setThemeKey]=useState(()=>{try{const k=localStorage.getItem("themeKey");return k&&THEMES[k]?k:"ocean";}catch(e){return "ocean";}});
+  const [themeKey,setThemeKey]=useState(()=>{try{const k=localStorage.getItem("themeKey");return k&&THEMES[k]?k:"midnight";}catch(e){return "midnight";}});
   const [showThemes,setShowThemes]=useState(false);
   const [acts,setActs]=useState(ACTIVITIES);
   const [showPlan,setShowPlan]=useState(false);
