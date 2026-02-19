@@ -195,6 +195,8 @@ function App(){
   const [liveWeather,setLiveWeather]=useState(null);
   const [loadingWeather,setLoadingWeather]=useState(false);
   const [weatherPeriod,setWeatherPeriod]=useState("today");
+  const [assistantMsg,setAssistantMsg]=useState(null);
+  const [loadingAssistant,setLoadingAssistant]=useState(false);
 
   // Fetch live data when switching to live mode
   useEffect(()=>{
@@ -254,15 +256,24 @@ function App(){
     return()=>window.removeEventListener("scroll",onScroll);
   },[demoMode,loadingMore,hasMore,loadMoreActivities]);
 
-  // Fetch weather when location changes (live mode) or on initial live switch
+  // Fetch weather (both demo + live — live weather enhances demo too)
   useEffect(()=>{
-    if(demoMode){setLiveWeather(null);return;}
     setLoadingWeather(true);
     fetch(`/api/weather?location=${loc.toLowerCase()}`).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
       .then(d=>{if(d.error)throw new Error(d.error);setLiveWeather(d.hours);setWeatherPeriod(d.period||"today");})
       .catch(()=>setLiveWeather(null))
       .finally(()=>setLoadingWeather(false));
   },[demoMode,loc]);
+
+  // Fetch AI assistant message (both demo + live — demo sends demo context)
+  useEffect(()=>{
+    setLoadingAssistant(true);
+    const url=demoMode?"/api/assistant?demo=1":"/api/assistant";
+    fetch(url).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
+      .then(d=>{if(d.error)throw new Error(d.error);setAssistantMsg(d.message);})
+      .catch(()=>setAssistantMsg(null))
+      .finally(()=>setLoadingAssistant(false));
+  },[demoMode]);
 
   const t=THEMES[themeKey];
   const accent=t.accent;
@@ -273,7 +284,7 @@ function App(){
   const resolvedName=demoMode?"DJ Run":(liveProfile?liveProfile.name:"\u2014");
   const resolvedLocation=demoMode?"Concord, CA":(liveProfile?[liveProfile.city,liveProfile.state].filter(Boolean).join(", "):"\u2014");
   const resolvedYtdMiles=demoMode?198.7:(liveProfile?liveProfile.ytd_miles:0);
-  const resolvedWeather=demoMode?WEATHER:(liveWeather||WEATHER);
+  const resolvedWeather=liveWeather||WEATHER;
   const weatherComfort=(()=>{const temps=resolvedWeather.map(w=>w.temp);if(!temps.length)return null;const allComfy=temps.every(t=>t>=45&&t<=70);const noneComfy=temps.every(t=>t<45||t>70);if(allComfy)return"All hours in your comfort zone";if(noneComfy)return"No hours in comfort zone — dress accordingly";const comfy=resolvedWeather.filter(w=>w.temp>=45&&w.temp<=70);return`${comfy.length} of ${temps.length} hours in comfort zone`;})();
 
   // Current week boundaries (shared by plan counts + RunTypePill rules)
@@ -421,14 +432,15 @@ function App(){
       <div style={{display:"flex",flexDirection:"column",gap:20}}>
 
         {/* AI Assistant */}
-        <div style={{...crd,background:`linear-gradient(135deg,${t.card},${t.bg})`,borderColor:accent+"30"}}>
+        {loadingAssistant?<div style={{...crd,background:`linear-gradient(135deg,${t.card},${t.bg})`,borderColor:accent+"30",minHeight:80}}>
+          <div style={{...lbl,marginBottom:8}}>AI ASSISTANT</div>
+          <div style={{color:B.dim,fontSize:15}}>Loading...</div>
+        </div>:<div style={{...crd,background:`linear-gradient(135deg,${t.card},${t.bg})`,borderColor:accent+"30"}}>
           <div style={{...lbl,marginBottom:8}}>AI ASSISTANT</div>
           <div style={{fontSize:18,lineHeight:1.6,fontWeight:400,color:B.text+"ee"}}>
-            The weather looks great today — 58°F and sunny by noon. You still have your{" "}
-            <span style={{color:B.gold,fontWeight:600}}>interval run</span> and one more{" "}
-            <span style={{color:B.dimBright,fontWeight:600}}>rest day</span> left this week. You're at 26.2 of 50 miles. A solid 8-miler would keep you on pace.
+            {(()=>{const raw=assistantMsg||"The weather looks great today \u2014 58\u00b0F and sunny by noon. You still have your interval run and one more rest day left this week. You're at 26.2 of 50 miles. A solid 8-miler would keep you on pace.";const lines=raw.split("\n");const intro=[];const bullets=[];lines.forEach(l=>{const trimmed=l.trim();if(trimmed.startsWith("- "))bullets.push(trimmed.slice(2));else if(trimmed)intro.push(trimmed);});return <>{intro.length>0&&<div>{intro.join(" ")}</div>}{bullets.length>0&&<ul style={{margin:"10px 0 0",paddingLeft:22}}>{bullets.map((b,i)=><li key={i} style={{marginBottom:i<bullets.length-1?6:0}}>{b}</li>)}</ul>}</>;})()}
           </div>
-        </div>
+        </div>}
 
         {/* Weekly Goal */}
         {!demoMode&&loadingActivities?<LoadingCard t={t} rows={5} label="WEEKLY GOAL"/>:<div style={crd}>
@@ -572,7 +584,7 @@ function App(){
               {["Concord","Danville"].map(l=><button key={l} onClick={()=>setLoc(l)} style={{background:loc===l?accent:"transparent",color:loc===l?"#fff":B.dim,border:"none",padding:"5px 14px",fontSize:13,cursor:"pointer",fontWeight:600,fontFamily:fontStack,transition:"all 0.2s"}}>{l}</button>)}
             </div>
           </div>
-          {!demoMode&&loadingWeather?<LoadingCard t={t} rows={4} label="Loading forecast..."/>:<div style={{position:"relative"}}>
+          {loadingWeather?<LoadingCard t={t} rows={4} label="Loading forecast..."/>:<div style={{position:"relative"}}>
             <div className="weather-scroll" style={{maxHeight:280,overflowY:"auto",scrollbarWidth:"thin",scrollbarColor:`${t.border} transparent`}}>
               {(()=>{const _dn=["SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"];let lastOff=null;return resolvedWeather.flatMap((w,i)=>{
                 const items=[];

@@ -152,10 +152,6 @@ Total estimate: 2-3 days. API cost: ~400 Claude API calls per run (200 scenarios
 - Bar should visually animate filling to 100% before the celebration triggers
 - Personal and demo app
 
-### Demo Mode AI Message Formatting
-- Update the demo's hardcoded AI assistant message to match the new format: 1-2 sentence opening line + bulleted list of suggestions
-- Keep it consistent with the personal/live AI assistant output style
-
 ### Settings Panel & Layout Customization (Partially Complete)
 - ~~Collapsible activity cards~~ — DONE: compact/expanded toggle in settings with per-card expand
 - Reorderable right sidebar: allow user to set vertical order of Weather, Weekly Run Plan, and Shoes sections via settings panel or drag-and-drop
@@ -184,6 +180,21 @@ Total estimate: 2-3 days. API cost: ~400 Claude API calls per run (200 scenarios
   - Whether it should be personal-only first or rolled out to both apps
   - Any shared code (routing, assistant_client, CSS/layout) that could break the other environment
 - This applies to all feature discussions, not just implementation.
+
+**Demo Mode Contract**
+- LIVE (real API data): Weather, AI Assistant
+- HARDCODED (sample data): Activities, Profile, Shoes, Weekly Goal progress
+- Any new feature must specify whether it's live or hardcoded in demo mode BEFORE building
+- Test both modes after every change — verify live data sources are actually hitting the API, not serving cached/hardcoded values
+
+**Pre-Publish Repo Checklist (run before sharing any repo link publicly)**
+- No API keys, secrets, tokens, or .env files committed
+- CLAUDE.md reviewed — remove or clean up anything that shouldn't be public
+- README.md exists, is up to date, and looks professional with screenshot
+- Commit history clean — no sensitive data in past commits
+- No debug logging left in production code
+- .gitignore covers all sensitive files
+- Run this checklist before posting any repo link on LinkedIn, portfolio, or anywhere public
 
 ## APP_MODE System
 Environment variable `APP_MODE` controls frontend behavior:

@@ -43,14 +43,6 @@ def _cache_set(key, data):
 # ---------------------------------------------------------------------------
 # Weather condition code mapping
 # ---------------------------------------------------------------------------
-def _map_weather_type(condition_id):
-    """Map OpenWeatherMap condition code to 'sun' or 'cloud'."""
-    if condition_id == 800:
-        return "sun"
-    if 801 <= condition_id <= 802:
-        return "sun"  # few/scattered clouds — still sunny enough
-    return "cloud"  # 803-804 overcast, rain, snow, etc.
-
 
 def _format_hour(hour):
     """Format 24h int to '9 AM' / '12 PM' style."""
@@ -70,14 +62,12 @@ def get_hourly_forecast(location="concord"):
     """
     Fetch forecast from OpenWeatherMap One Call API 3.0.
 
-    Logic:
-    - Before 6 PM: return the next 12 hours from now.
-    - At/after 6 PM: return tomorrow 6 AM – 6 PM.
+    Returns the next 18 hours from the current time, with dayOffset
+    calculated relative to today (0 = today, 1 = tomorrow).
 
     Returns dict:
       {
-        "period": "today" | "tomorrow",
-        "hours": [{ time, temp, rain, wind, type }, ...]
+        "hours": [{ time, temp, rain, wind, type, dayOffset }, ...]
       }
     """
     loc_key = location.lower()
@@ -109,33 +99,21 @@ def get_hourly_forecast(location="concord"):
     raw = resp.json()
 
     now = datetime.now(LOCAL_TZ)
+    today = now.date()
+    cutoff = now + timedelta(hours=18)
     hourly = raw.get("hourly", [])
     hours = []
 
-    if now.hour >= 18:
-        # Evening — show tomorrow 6 AM – 6 PM
-        period = "tomorrow"
-        tomorrow = now.date() + timedelta(days=1)
-        for item in hourly:
-            dt = datetime.fromtimestamp(item["dt"], tz=LOCAL_TZ)
-            if dt.date() != tomorrow:
-                continue
-            if dt.hour < 6 or dt.hour > 18:
-                continue
-            hours.append(_format_item(item, dt))
-    else:
-        # Daytime — show next 12 hours from now
-        period = "today"
-        cutoff = now + timedelta(hours=12)
-        for item in hourly:
-            dt = datetime.fromtimestamp(item["dt"], tz=LOCAL_TZ)
-            if dt < now:
-                continue
-            if dt > cutoff:
-                break
-            hours.append(_format_item(item, dt))
+    for item in hourly:
+        dt = datetime.fromtimestamp(item["dt"], tz=LOCAL_TZ)
+        if dt < now:
+            continue
+        if dt > cutoff:
+            break
+        day_offset = (dt.date() - today).days
+        hours.append(_format_item(item, dt, day_offset=day_offset))
 
-    result = {"period": period, "hours": hours}
+    result = {"hours": hours}
     _cache_set(cache_key, result)
     return result
 
@@ -194,13 +172,13 @@ def _format_item(item, dt, day_offset=0):
     rain_pct = f"{round(pop * 100)}%"
     wind = f"{round(item.get('wind_speed', 0))} mph"
     weather_list = item.get("weather", [])
-    condition_id = weather_list[0]["id"] if weather_list else 800
+    desc = weather_list[0]["main"] if weather_list else "Clear"
 
     return {
         "time": _format_hour(dt.hour),
         "temp": temp,
         "rain": rain_pct,
         "wind": wind,
-        "type": _map_weather_type(condition_id),
+        "desc": desc,
         "dayOffset": day_offset,
     }

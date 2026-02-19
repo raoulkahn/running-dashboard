@@ -36,8 +36,6 @@ const fontStack = "'Inter',system-ui,-apple-system,sans-serif";
 const PulseIcon = ({size=24,color}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h4l3-9 4 18 3-9h6"/></svg>;
 const ShoeIcon = ({size=14,color="#64748b"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18h18v-2c0-1-1-2-2-2h-1l-2-4c-.5-1-1.5-2-3-2H9C7.5 8 6.5 9 6 10L4 14H3c-1 0-2 1-2 2v2z"/><path d="M7 18v-3"/><path d="M11 18v-5"/><path d="M15 18v-3"/></svg>;
 const MapPinIcon = ({size=20,color="#64748b"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>;
-const SunIcon = ({size=16}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"/></svg>;
-const CloudSunIcon = ({size=16,bgFill="#1e2d3d"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round"><path d="M12 2v2m-6.36.64l1.42 1.42M2 12h2" stroke="#fbbf24"/><circle cx="12" cy="10" r="4" stroke="#fbbf24"/><path d="M17.5 21H9a5 5 0 0 1-.5-9.97A7 7 0 0 1 20.5 14 4 4 0 0 1 17.5 21z" fill={bgFill} stroke="#94a3b8"/></svg>;
 
 const RUN_TYPES = [
   { name:"Easy Long Run", color:B.cyan },
@@ -84,24 +82,24 @@ const ACTIVITIES = [
 ];
 
 const WEATHER = [
-  { time:"9 AM", temp:48, rain:"5%", wind:"3 mph", type:"cloud", dayOffset:0 },
-  { time:"10 AM", temp:52, rain:"2%", wind:"4 mph", type:"cloud", dayOffset:0 },
-  { time:"11 AM", temp:55, rain:"2%", wind:"5 mph", type:"sun", dayOffset:0 },
-  { time:"12 PM", temp:58, rain:"2%", wind:"5 mph", type:"sun", dayOffset:0 },
-  { time:"1 PM", temp:60, rain:"0%", wind:"6 mph", type:"sun", dayOffset:0 },
-  { time:"2 PM", temp:59, rain:"0%", wind:"5 mph", type:"sun", dayOffset:0 },
-  { time:"3 PM", temp:57, rain:"0%", wind:"4 mph", type:"sun", dayOffset:0 },
-  { time:"4 PM", temp:54, rain:"5%", wind:"3 mph", type:"cloud", dayOffset:0 },
-  { time:"5 PM", temp:51, rain:"8%", wind:"3 mph", type:"cloud", dayOffset:0 },
-  { time:"6 AM", temp:44, rain:"10%", wind:"5 mph", type:"cloud", dayOffset:1 },
-  { time:"7 AM", temp:45, rain:"8%", wind:"5 mph", type:"cloud", dayOffset:1 },
-  { time:"8 AM", temp:47, rain:"5%", wind:"4 mph", type:"cloud", dayOffset:1 },
-  { time:"9 AM", temp:50, rain:"2%", wind:"4 mph", type:"sun", dayOffset:1 },
-  { time:"10 AM", temp:54, rain:"0%", wind:"5 mph", type:"sun", dayOffset:1 },
-  { time:"11 AM", temp:57, rain:"0%", wind:"5 mph", type:"sun", dayOffset:1 },
-  { time:"12 PM", temp:60, rain:"0%", wind:"6 mph", type:"sun", dayOffset:1 },
-  { time:"1 PM", temp:62, rain:"0%", wind:"6 mph", type:"sun", dayOffset:1 },
-  { time:"2 PM", temp:61, rain:"5%", wind:"5 mph", type:"sun", dayOffset:1 },
+  { time:"10 AM", temp:52, rain:"2%", wind:"4 mph", desc:"Clouds", dayOffset:0 },
+  { time:"11 AM", temp:55, rain:"2%", wind:"5 mph", desc:"Clouds", dayOffset:0 },
+  { time:"12 PM", temp:58, rain:"2%", wind:"5 mph", desc:"Clear", dayOffset:0 },
+  { time:"1 PM", temp:60, rain:"0%", wind:"6 mph", desc:"Clear", dayOffset:0 },
+  { time:"2 PM", temp:59, rain:"0%", wind:"5 mph", desc:"Clouds", dayOffset:0 },
+  { time:"3 PM", temp:57, rain:"0%", wind:"4 mph", desc:"Clouds", dayOffset:0 },
+  { time:"4 PM", temp:54, rain:"55%", wind:"3 mph", desc:"Rain", dayOffset:0 },
+  { time:"5 PM", temp:51, rain:"80%", wind:"3 mph", desc:"Rain", dayOffset:0 },
+  { time:"6 PM", temp:48, rain:"60%", wind:"3 mph", desc:"Drizzle", dayOffset:0 },
+  { time:"7 PM", temp:46, rain:"30%", wind:"2 mph", desc:"Clouds", dayOffset:0 },
+  { time:"8 PM", temp:44, rain:"2%", wind:"2 mph", desc:"Clouds", dayOffset:0 },
+  { time:"9 PM", temp:43, rain:"0%", wind:"2 mph", desc:"Clear", dayOffset:0 },
+  { time:"10 PM", temp:42, rain:"0%", wind:"1 mph", desc:"Clear", dayOffset:0 },
+  { time:"11 PM", temp:41, rain:"0%", wind:"1 mph", desc:"Clear", dayOffset:0 },
+  { time:"12 AM", temp:40, rain:"5%", wind:"2 mph", desc:"Clouds", dayOffset:1 },
+  { time:"1 AM", temp:39, rain:"5%", wind:"2 mph", desc:"Clouds", dayOffset:1 },
+  { time:"2 AM", temp:38, rain:"2%", wind:"2 mph", desc:"Clouds", dayOffset:1 },
+  { time:"3 AM", temp:38, rain:"0%", wind:"1 mph", desc:"Clear", dayOffset:1 },
 ];
 
 const WEEK_DAYS = [
@@ -483,12 +481,18 @@ function App(){
   },[demoMode,loadingMore,hasMore,loadMoreActivities]);
 
   // Fetch weather (both demo + live — live weather enhances demo too)
+  // Refreshes every 30 min to stay current with backend cache TTL
   useEffect(()=>{
-    setLoadingWeather(true);
-    fetch(`/api/weather?location=${loc.toLowerCase()}`).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
-      .then(d=>{if(d.error)throw new Error(d.error);setLiveWeather(d.hours);})
-      .catch(()=>{setLiveWeather(null);})
-      .finally(()=>setLoadingWeather(false));
+    const fetchWeather=()=>{
+      setLoadingWeather(true);
+      fetch(`/api/weather?location=${loc.toLowerCase()}`).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
+        .then(d=>{if(d.error)throw new Error(d.error);setLiveWeather(d.hours);})
+        .catch(()=>{setLiveWeather(null);})
+        .finally(()=>setLoadingWeather(false));
+    };
+    fetchWeather();
+    const interval=setInterval(fetchWeather,30*60*1000);
+    return()=>clearInterval(interval);
   },[demoMode,loc]);
 
   // Fetch AI assistant message (both demo + live — demo sends demo context)
@@ -910,11 +914,11 @@ function App(){
                 const off=w.dayOffset!=null?w.dayOffset:0;
                 if(off!==lastOff){lastOff=off;const label=_dn[(new Date().getDay()+off)%7];items.push(<div key={"dh-"+off} style={{padding:"8px 0 4px",fontSize:12,fontWeight:700,color:accent,textTransform:"uppercase",letterSpacing:"0.08em",borderBottom:`1px solid ${t.border}33`}}>{label}</div>);}
                 items.push(<div key={i} className="weather-row" style={{display:"flex",alignItems:"center",padding:"9px 0",borderBottom:`1px solid ${t.border}18`,fontSize:15,borderRadius:4}}>
-                  <span style={{width:"28%",color:t.dim,fontWeight:500,whiteSpace:"nowrap"}}>{w.time}</span>
-                  <span style={{width:"10%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>{w.type==="sun"?<SunIcon size={16}/>:<CloudSunIcon size={16} bgFill={t.card}/>}</span>
-                  <span style={{width:"22%",fontWeight:700,textAlign:"right",color:w.temp>=45&&w.temp<=70?B.green:B.coral,whiteSpace:"nowrap"}}>{w.temp}°</span>
+                  <span style={{width:"22%",color:t.dim,fontWeight:500,whiteSpace:"nowrap"}}>{w.time}</span>
+                  <span style={{width:"22%",fontSize:13,color:t.dimBright,fontWeight:500,whiteSpace:"nowrap"}}>{w.desc}</span>
+                  <span style={{width:"18%",fontWeight:700,textAlign:"right",color:w.temp>80?"#ef4444":w.temp>=65?"#f59e0b":w.temp>=45?B.green:"#60a5fa",whiteSpace:"nowrap"}}>{w.temp}°</span>
                   <span style={{width:"18%",textAlign:"right",color:t.dim,fontSize:13,fontWeight:500,whiteSpace:"nowrap"}}>{w.rain}</span>
-                  <span style={{width:"22%",textAlign:"right",color:t.dim,fontSize:13,fontWeight:500,whiteSpace:"nowrap"}}>{w.wind}</span>
+                  <span style={{width:"20%",textAlign:"right",color:t.dim,fontSize:13,fontWeight:500,whiteSpace:"nowrap"}}>{w.wind}</span>
                 </div>);
                 return items;
               });})()}
