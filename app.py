@@ -1,17 +1,24 @@
 """
-Running Dashboard — Flask Backend
-Handles Strava OAuth, API proxy, and user settings.
+AI Run Partner — Flask Backend
+Handles Strava OAuth, API proxy, admin auth, and user settings.
 """
 
 import json
 import os
+import functools
+from datetime import timedelta
 import requests
-from flask import Flask, redirect, request, jsonify, session, send_from_directory, render_template
+from flask import (
+    Flask, redirect, request, jsonify, session,
+    send_from_directory, render_template,
+)
 from config import (
     STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, STRAVA_AUTH_URL,
     STRAVA_TOKEN_URL, STRAVA_SCOPES, REDIRECT_URI, FLASK_SECRET_KEY,
     DEFAULT_WEEKLY_GOAL, DEFAULT_SHOE_MAX_MILES, APP_MODE, ANTHROPIC_API_KEY,
+    ADMIN_PASSWORD,
 )
+import db
 import strava_client
 import weather_client
 import assistant_client
@@ -19,12 +26,24 @@ import assistant_client
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.secret_key = FLASK_SECRET_KEY
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
 
-# User settings file (single-user personal app)
+# Initialize database on startup
+db.init_db()
+
+# User settings file (fallback for local dev without DB)
 SETTINGS_FILE = "user_settings.json"
 
 
+# ---------------------------------------------------------------------------
+# Settings helpers (DB-first, file fallback)
+# ---------------------------------------------------------------------------
 def load_settings():
+    """Load user settings — DB first, file fallback."""
+    if db.is_available():
+        data = db.db_get_setting("user_settings")
+        if data:
+            return data
     if os.path.exists(SETTINGS_FILE):
         with open(SETTINGS_FILE, "r") as f:
             return json.load(f)
@@ -36,14 +55,143 @@ def load_settings():
 
 
 def save_settings(settings):
-    with open(SETTINGS_FILE, "w") as f:
-        json.dump(settings, f, indent=2)
+    """Save user settings — DB first, file fallback."""
+    if db.is_available():
+        db.db_set_setting("user_settings", settings)
+    else:
+        with open(SETTINGS_FILE, "w") as f:
+            json.dump(settings, f, indent=2)
 
 
 # ---------------------------------------------------------------------------
-# OAuth Routes
+# Run type helpers (DB-first, file fallback)
+# ---------------------------------------------------------------------------
+RUN_TYPES_FILE = "run_types.json"
+
+
+def load_run_types():
+    """Load run types — DB first, file fallback."""
+    if db.is_available():
+        data = db.db_get_run_types()
+        if data is not None:
+            return data
+    if os.path.exists(RUN_TYPES_FILE):
+        with open(RUN_TYPES_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+
+def save_run_type(activity_id, run_type):
+    """Save a single run type — DB first, file fallback."""
+    if db.is_available():
+        db.db_save_run_type(activity_id, run_type)
+    else:
+        types = load_run_types()
+        types[str(activity_id)] = run_type
+        with open(RUN_TYPES_FILE, "w") as f:
+            json.dump(types, f, indent=2)
+
+
+# ---------------------------------------------------------------------------
+# Admin auth
+# ---------------------------------------------------------------------------
+def require_admin(f):
+    """Decorator — reject if not logged in as admin."""
+    @functools.wraps(f)
+    def wrapped(*args, **kwargs):
+        if not session.get("admin"):
+            return jsonify({"error": "Unauthorized"}), 401
+        return f(*args, **kwargs)
+    return wrapped
+
+
+@app.route("/go", methods=["GET", "POST"])
+def admin_gate():
+    """Admin login page at an obscure URL."""
+    if request.method == "GET":
+        already = session.get("admin", False)
+        return f"""<!DOCTYPE html>
+<html><head><title>Go</title>
+<style>
+  body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+         display: flex; align-items: center; justify-content: center; min-height: 100vh;
+         margin: 0; background: #0d1117; color: #e6edf3; }}
+  .box {{ background: #161b22; border: 1px solid #30363d; border-radius: 12px;
+          padding: 32px; width: 300px; text-align: center; }}
+  h2 {{ margin: 0 0 20px; font-size: 20px; font-weight: 600; }}
+  input {{ width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #30363d;
+           background: #0d1117; color: #e6edf3; font-size: 15px; box-sizing: border-box;
+           outline: none; margin-bottom: 14px; }}
+  input:focus {{ border-color: #58a6ff; }}
+  button {{ width: 100%; padding: 10px; border-radius: 8px; border: none;
+            background: #238636; color: #fff; font-size: 15px; font-weight: 600;
+            cursor: pointer; }}
+  button:hover {{ background: #2ea043; }}
+  .msg {{ font-size: 13px; color: #8b949e; margin-top: 12px; }}
+  .err {{ color: #f85149; }}
+  a {{ color: #58a6ff; text-decoration: none; }}
+</style></head><body>
+<div class="box">
+  <h2>{"Already logged in" if already else "Admin"}</h2>
+  {"<p class='msg'>You're logged in. <a href='/go/logout'>Log out</a> · <a href='/'>Dashboard</a></p>" if already else '''
+  <form method="POST">
+    <input type="password" name="password" placeholder="Password" autofocus>
+    <button type="submit">Log In</button>
+  </form>'''}
+</div></body></html>"""
+
+    # POST — check password
+    password = request.form.get("password", "")
+    if not ADMIN_PASSWORD:
+        return f"""<!DOCTYPE html>
+<html><head><title>Go</title>
+<style>body{{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0d1117;color:#f85149;}}</style>
+</head><body><p>ADMIN_PASSWORD env var not set.</p></body></html>"""
+
+    if password == ADMIN_PASSWORD:
+        session.permanent = True
+        session["admin"] = True
+        return redirect("/")
+    else:
+        return f"""<!DOCTYPE html>
+<html><head><title>Go</title>
+<style>
+  body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+         display: flex; align-items: center; justify-content: center; min-height: 100vh;
+         margin: 0; background: #0d1117; color: #e6edf3; }}
+  .box {{ background: #161b22; border: 1px solid #30363d; border-radius: 12px;
+          padding: 32px; width: 300px; text-align: center; }}
+  h2 {{ margin: 0 0 20px; font-size: 20px; font-weight: 600; }}
+  input {{ width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #30363d;
+           background: #0d1117; color: #e6edf3; font-size: 15px; box-sizing: border-box;
+           outline: none; margin-bottom: 14px; }}
+  button {{ width: 100%; padding: 10px; border-radius: 8px; border: none;
+            background: #238636; color: #fff; font-size: 15px; font-weight: 600;
+            cursor: pointer; }}
+  .err {{ color: #f85149; font-size: 13px; margin-bottom: 12px; }}
+</style></head><body>
+<div class="box">
+  <h2>Admin</h2>
+  <div class="err">Wrong password</div>
+  <form method="POST">
+    <input type="password" name="password" placeholder="Password" autofocus>
+    <button type="submit">Log In</button>
+  </form>
+</div></body></html>"""
+
+
+@app.route("/go/logout")
+def admin_logout():
+    """Clear admin session."""
+    session.pop("admin", None)
+    return redirect("/")
+
+
+# ---------------------------------------------------------------------------
+# OAuth Routes (admin-only for connect/disconnect)
 # ---------------------------------------------------------------------------
 @app.route("/auth/strava")
+@require_admin
 def auth_strava():
     """Redirect user to Strava OAuth authorization page."""
     params = {
@@ -92,8 +240,13 @@ def auth_callback():
 
 
 @app.route("/auth/disconnect")
+@require_admin
 def auth_disconnect():
     """Remove stored tokens (disconnect from Strava)."""
+    # Clear DB token
+    if db.is_available():
+        db.db_save_token({})
+    # Clear file token
     if os.path.exists(strava_client.TOKEN_FILE):
         os.remove(strava_client.TOKEN_FILE)
     strava_client.cache_clear()
@@ -105,12 +258,13 @@ def auth_disconnect():
 # ---------------------------------------------------------------------------
 @app.route("/api/status")
 def api_status():
-    """Check if user is authenticated with Strava."""
+    """Check if user is authenticated with Strava + admin status."""
     tokens = strava_client.load_tokens()
     connected = tokens is not None and "access_token" in tokens
     return jsonify({
         "connected": connected,
         "settings": load_settings(),
+        "isAdmin": session.get("admin", False),
     })
 
 
@@ -143,7 +297,7 @@ def api_activities():
         page = request.args.get("page", 1, type=int)
         activities = strava_client.get_recent_activities(count=count, page=page)
 
-        # Merge user-assigned run types from run_types.json
+        # Merge user-assigned run types
         saved_types = load_run_types()
         for act in activities:
             key = str(act.get("id", ""))
@@ -247,8 +401,8 @@ def api_assistant():
             except Exception:
                 pass
 
-            # Plan — read from settings if saved, else use None
-            plan = settings.get("plan")
+            # Plan — read from DB/settings
+            plan = _load_plan()
 
         # Weather — 48h forecast for assistant context (works in both modes)
         weather = None
@@ -288,7 +442,7 @@ def api_assistant_debug():
             profile = strava_client.get_profile()
         except Exception:
             pass
-        plan = settings.get("plan")
+        plan = _load_plan()
         weather = None
         try:
             weather = weather_client.get_48h_forecast(location="concord")
@@ -314,10 +468,14 @@ def api_settings():
     if request.method == "GET":
         return jsonify(load_settings())
 
+    # POST requires admin
+    if not session.get("admin"):
+        return jsonify({"error": "Unauthorized"}), 401
+
     data = request.get_json()
     settings = load_settings()
     # Merge incoming with existing
-    for key in ["goalMi", "vo2", "shoeMaxMiles", "favoriteShoes"]:
+    for key in ["goalMi", "vo2", "shoeMaxMiles", "favoriteShoes", "theme"]:
         if key in data:
             settings[key] = data[key]
     save_settings(settings)
@@ -325,32 +483,76 @@ def api_settings():
 
 
 # ---------------------------------------------------------------------------
+# Plan endpoints (DB-backed)
+# ---------------------------------------------------------------------------
+def _load_plan():
+    """Load weekly plan from DB settings. Returns list or None."""
+    if db.is_available():
+        data = db.db_get_setting("weekly_plan")
+        if data:
+            return data
+    # Fallback: check user_settings.json for plan key
+    settings = load_settings()
+    return settings.get("plan")
+
+
+@app.route("/api/plan", methods=["GET"])
+def api_plan():
+    """Get weekly run plan."""
+    plan = _load_plan()
+    return jsonify({"plan": plan})
+
+
+@app.route("/api/plan", methods=["POST"])
+@require_admin
+def api_plan_save():
+    """Save weekly run plan (admin only)."""
+    data = request.get_json()
+    plan = data.get("plan")
+    if plan is not None:
+        if db.is_available():
+            db.db_set_setting("weekly_plan", plan)
+        else:
+            settings = load_settings()
+            settings["plan"] = plan
+            save_settings(settings)
+    return jsonify({"status": "ok", "plan": plan})
+
+
+# ---------------------------------------------------------------------------
+# Notes endpoints (DB-backed)
+# ---------------------------------------------------------------------------
+@app.route("/api/notes", methods=["GET"])
+def api_notes():
+    """Get user notes."""
+    if db.is_available():
+        data = db.db_get_setting("notes")
+        return jsonify({"notes": data or []})
+    return jsonify({"notes": []})
+
+
+@app.route("/api/notes", methods=["POST"])
+@require_admin
+def api_notes_save():
+    """Save user notes (admin only)."""
+    data = request.get_json()
+    notes = data.get("notes", [])
+    if db.is_available():
+        db.db_set_setting("notes", notes)
+    return jsonify({"status": "ok", "notes": notes})
+
+
+# ---------------------------------------------------------------------------
 # Run type tagging (persisted per activity)
 # ---------------------------------------------------------------------------
-RUN_TYPES_FILE = "run_types.json"
-
-
-def load_run_types():
-    if os.path.exists(RUN_TYPES_FILE):
-        with open(RUN_TYPES_FILE, "r") as f:
-            return json.load(f)
-    return {}
-
-
-def save_run_types(data):
-    with open(RUN_TYPES_FILE, "w") as f:
-        json.dump(data, f, indent=2)
-
-
 @app.route("/api/activities/<int:activity_id>/runtype", methods=["POST"])
+@require_admin
 def set_run_type(activity_id):
     """Save user-assigned run type for an activity."""
     data = request.get_json()
     run_type = data.get("runType")
 
-    types = load_run_types()
-    types[str(activity_id)] = run_type
-    save_run_types(types)
+    save_run_type(activity_id, run_type)
 
     # Clear activity cache so it picks up the new type
     strava_client.cache_clear()

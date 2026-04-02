@@ -38,6 +38,10 @@ Flask backend + React frontend (single-page, inline styles).
 - All distances from Strava are in meters — convert to miles
 - Rate limit: 100 requests / 15 min — cache responses for 5 min minimum
 - **NEVER push to main or production without explicit user instruction** — always wait for the user to say "push"
+- **Always share implementation plan and wait for explicit approval before executing code changes**
+- **Always test locally before deploying to production** — run `flask run --debug` and verify changes work before any push. Never suggest deploying without local testing first.
+- **Before making changes, research the current implementation first** — never assume something is simple or doable without checking the actual code
+- **When referencing project context, always check CLAUDE.md and the project plan (`ai-run-partner-plan.md`) first**
 - Feature branches for development, main stays stable for production
 
 ## Completed Phases

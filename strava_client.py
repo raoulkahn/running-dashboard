@@ -12,21 +12,30 @@ from config import (
     STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, STRAVA_TOKEN_URL,
     STRAVA_API_BASE, DEFAULT_SHOE_MAX_MILES, CACHE_TTL_SECONDS
 )
+import db
 
 # ---------------------------------------------------------------------------
-# Token storage (file-based — fine for single-user personal app)
+# Token storage (DB-first, file fallback for local dev)
 # ---------------------------------------------------------------------------
 TOKEN_FILE = "tokens.json"
 
 
 def save_tokens(token_data):
-    """Persist tokens to disk."""
-    with open(TOKEN_FILE, "w") as f:
-        json.dump(token_data, f)
+    """Persist tokens — DB first, file fallback."""
+    if db.is_available():
+        db.db_save_token(token_data)
+    else:
+        with open(TOKEN_FILE, "w") as f:
+            json.dump(token_data, f)
 
 
 def load_tokens():
-    """Load tokens from disk. Returns None if not found."""
+    """Load tokens — DB first, file fallback. Returns None if not found."""
+    if db.is_available():
+        data = db.db_get_token()
+        if data:
+            return data
+    # File fallback (local dev or DB not yet provisioned)
     if not os.path.exists(TOKEN_FILE):
         return None
     with open(TOKEN_FILE, "r") as f:

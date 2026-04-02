@@ -20,6 +20,12 @@ OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
 # Anthropic (Claude AI Assistant)
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
+# Database (Supabase Postgres)
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# Admin auth
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+
 # App mode: "personal", "demo", "development"
 APP_MODE = os.getenv("APP_MODE", "development")
 

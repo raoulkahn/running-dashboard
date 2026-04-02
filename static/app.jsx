@@ -397,6 +397,8 @@ function App(){
   const [showAllNotes,setShowAllNotes]=useState(false);
 
   const [favoriteShoes,setFavoriteShoes]=useState([]);
+  const [isAdmin,setIsAdmin]=useState(false);
+  const _syncNotes=(notes)=>{try{localStorage.setItem("userNotes",JSON.stringify(notes));}catch(e){}if(isAdmin&&!demoMode)fetch("/api/notes",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({notes})}).catch(()=>{});};
 
   // ── Live data & loading state ──
   const [demoMode,setDemoMode]=useState(APP_MODE!=="personal");
@@ -426,7 +428,10 @@ function App(){
   useEffect(()=>{
     if(demoMode)return;
     setApiError(null);
-    fetch("/api/status").then(r=>r.json()).then(d=>{setConnected(d.connected);if(d.settings&&d.settings.favoriteShoes)setFavoriteShoes(d.settings.favoriteShoes);}).catch(()=>setConnected(false)).finally(()=>setStatusChecked(true));
+    fetch("/api/status").then(r=>r.json()).then(d=>{setConnected(d.connected);setIsAdmin(!!d.isAdmin);if(d.settings&&d.settings.favoriteShoes)setFavoriteShoes(d.settings.favoriteShoes);if(d.isAdmin&&d.settings&&d.settings.theme&&THEMES[d.settings.theme]){setThemeKey(d.settings.theme);try{localStorage.setItem("themeKey",d.settings.theme);}catch(e){}}}).catch(()=>setConnected(false)).finally(()=>setStatusChecked(true));
+    // Load plan and notes from server
+    fetch("/api/plan").then(r=>r.json()).then(d=>{if(d.plan&&Array.isArray(d.plan)&&d.plan.length>0)setPlan(d.plan);}).catch(()=>{});
+    fetch("/api/notes").then(r=>r.json()).then(d=>{if(d.notes&&Array.isArray(d.notes)&&d.notes.length>0)setUserNotes(d.notes);}).catch(()=>{});
     setLoadingProfile(true);
     fetch("/api/profile").then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
       .then(d=>{if(d.error)throw new Error(d.error);setLiveProfile(d);})
@@ -539,6 +544,7 @@ function App(){
   })();
 
   const toggleFavorite=(shoeId)=>{
+    if(!isAdmin)return;
     const id=shoeId||"";
     const next=favoriteShoes.includes(id)?favoriteShoes.filter(s=>s!==id):[...favoriteShoes,id];
     setFavoriteShoes(next);
@@ -566,6 +572,10 @@ function App(){
   const RunTypePill=({type,actId})=>{
     const [open,setOpen]=useState(false);
     const color=type?rtColor(type):accent;
+    if(!isAdmin){
+      if(!type)return null;
+      return <span style={{display:"inline-flex",alignItems:"center",gap:4,padding:"3px 12px",borderRadius:20,fontSize:14,fontWeight:600,background:color+"18",color:color,border:`1px solid ${color}33`,fontFamily:fontStack}}>{type}</span>;
+    }
     return <div style={{position:"relative",display:"inline-block"}}>
       <button onClick={e=>{e.stopPropagation();setOpen(!open);}} style={{
         display:"inline-flex",alignItems:"center",gap:4,padding:"3px 12px",borderRadius:20,fontSize:14,fontWeight:600,
@@ -641,7 +651,7 @@ function App(){
             {/* Theme grid — 2 columns */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:3,marginBottom:8}}>
               {["midnight","ocean","strava","forest","slate","storm","twilight","fog","stravaLight","oceanLight","forestLight","minimalGray"].map(key=>{const th=THEMES[key];const isA=themeKey===key;return(
-                <button key={key} onClick={()=>{if(key===themeKey)return;try{localStorage.setItem("themeKey",key);}catch(e){}setThemeKey(key);}} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 6px",borderRadius:7,border:isA?`2px solid ${th.accent}`:"2px solid transparent",background:isA?th.accent+"14":"transparent",cursor:"pointer",transition:"all 0.12s"}}
+                <button key={key} onClick={()=>{if(key===themeKey)return;try{localStorage.setItem("themeKey",key);}catch(e){}setThemeKey(key);if(isAdmin)fetch("/api/settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({theme:key})}).catch(()=>{});}} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 6px",borderRadius:7,border:isA?`2px solid ${th.accent}`:"2px solid transparent",background:isA?th.accent+"14":"transparent",cursor:"pointer",transition:"all 0.12s"}}
                   onMouseEnter={e=>{if(!isA)e.currentTarget.style.background="#f5f5f5";}}
                   onMouseLeave={e=>{if(!isA)e.currentTarget.style.background="transparent";}}>
                   <div style={{display:"flex",gap:2,flexShrink:0}}>
@@ -696,7 +706,7 @@ function App(){
     </div>}
 
     {/* Strava connect CTA */}
-    {!demoMode&&statusChecked&&!connected&&!loadingProfile&&!apiError&&<div style={{...crd,textAlign:"center",padding:"32px 20px",marginBottom:16,borderColor:accent+"30"}}>
+    {isAdmin&&!demoMode&&statusChecked&&!connected&&!loadingProfile&&!apiError&&<div style={{...crd,textAlign:"center",padding:"32px 20px",marginBottom:16,borderColor:accent+"30"}}>
       <div style={{fontSize:17,fontWeight:600,marginBottom:8}}>Connect your Strava account</div>
       <div style={{fontSize:15,color:t.dim,marginBottom:16}}>Authorize with Strava to see your live running data</div>
       <a href="/auth/strava" style={{display:"inline-block",padding:"12px 28px",background:"#fc4c02",color:"#fff",textDecoration:"none",borderRadius:10,fontWeight:700,fontSize:16}}>Connect with Strava</a>
@@ -727,8 +737,8 @@ function App(){
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
             <div style={{display:"flex",alignItems:"center",gap:8}}>
               <span style={lbl}>WEEKLY GOAL</span>
-              {goalMi>0?<button onClick={()=>{setGoalInput(String(goalMi));setEditGoal(true);}} style={{background:"none",border:"none",color:accent,fontSize:13,cursor:"pointer",fontWeight:600,fontFamily:fontStack}}>Edit</button>
-              :<button onClick={()=>{setGoalInput("");setEditGoal(true);}} style={{background:"none",border:"none",color:accent,fontSize:13,cursor:"pointer",fontWeight:600,fontFamily:fontStack}}>+ Set Weekly Goal</button>}
+              {isAdmin&&(goalMi>0?<button onClick={()=>{setGoalInput(String(goalMi));setEditGoal(true);}} style={{background:"none",border:"none",color:accent,fontSize:13,cursor:"pointer",fontWeight:600,fontFamily:fontStack}}>Edit</button>
+              :<button onClick={()=>{setGoalInput("");setEditGoal(true);}} style={{background:"none",border:"none",color:accent,fontSize:13,cursor:"pointer",fontWeight:600,fontFamily:fontStack}}>+ Set Weekly Goal</button>)}
             </div>
             {goalMi>0&&<div style={{fontSize:26,fontWeight:700,letterSpacing:"-0.02em"}}>{totalMi} <span style={{color:t.dim,fontWeight:400,fontSize:17}}>/ {goalMi} mi</span></div>}
           </div>
@@ -878,12 +888,12 @@ function App(){
         {notesEnabled&&userNotes.length>0&&<div style={anim(150)}><div className="card-hover" style={crd}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
             <div style={lbl}>NOTES</div>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
+            {isAdmin&&<div style={{display:"flex",alignItems:"center",gap:10}}>
               <button onClick={()=>{setEditingNoteId(null);setConfirmDeleteId(null);setShowNotesModal(true);}} style={{background:"none",border:"none",color:accent,fontSize:13,cursor:"pointer",fontWeight:600,fontFamily:fontStack}}>Edit</button>
               <button onClick={()=>{setNotesModalAdd(true);setEditingNoteId(null);setConfirmDeleteId(null);setNewNoteText("");setShowNotesModal(true);}} style={{background:"none",border:"none",cursor:"pointer",padding:2,display:"flex",alignItems:"center"}} title="Add note">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               </button>
-            </div>
+            </div>}
           </div>
           <div>
             {(showAllNotes?userNotes:userNotes.slice(0,3)).map(note=><div key={note.id} className="item-hover" style={{padding:"8px 6px",borderRadius:6,borderBottom:`1px solid ${t.border}18`}}>
@@ -931,7 +941,7 @@ function App(){
         <div style={anim(300)}><div className="card-hover" style={crd}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
             <div style={lbl}>WEEKLY RUN PLAN</div>
-            <button onClick={()=>{setTmp(plan.map(p=>({...p})));setShowPlan(true);}} style={{background:"none",border:"none",color:accent,fontSize:13,cursor:"pointer",fontWeight:600,fontFamily:fontStack}}>Edit</button>
+            {isAdmin&&<button onClick={()=>{setTmp(plan.map(p=>({...p})));setShowPlan(true);}} style={{background:"none",border:"none",color:accent,fontSize:13,cursor:"pointer",fontWeight:600,fontFamily:fontStack}}>Edit</button>}
           </div>
           {(()=>{const activePlan=plan.filter(p=>p.count>0);const totalPlanned=activePlan.reduce((s,p)=>s+p.count,0);const totalDone=activePlan.reduce((s,p)=>s+Math.min(runTypeCounts[p.type]||0,p.count),0);const pct=totalPlanned?Math.round((totalDone/totalPlanned)*100):0;return <div style={{marginBottom:14}}>
             <div style={{textAlign:"right",fontSize:13,color:t.dim,fontWeight:500,marginBottom:6}}>{pct}%</div>
@@ -1018,7 +1028,7 @@ function App(){
           <button onClick={()=>setShowPlan(false)} style={{flex:1,padding:"11px 0",borderRadius:10,border:`1px solid ${t.border}`,background:"transparent",color:t.text,fontSize:16,cursor:"pointer",fontFamily:fontStack,fontWeight:500,transition:"border-color 0.15s"}}
             onMouseEnter={e=>e.currentTarget.style.borderColor=t.dimBright}
             onMouseLeave={e=>e.currentTarget.style.borderColor=t.border}>Cancel</button>
-          {(()=>{const hasChange=tmp&&plan&&tmp.some((p,i)=>p.count!==plan[i].count||p.notes!==plan[i].notes);return <button onClick={()=>{if(hasChange){setPlan(tmp);setShowPlan(false);}}} disabled={!hasChange} style={{flex:1,padding:"11px 0",borderRadius:10,border:"none",background:hasChange?accent:t.border,color:hasChange?"#fff":t.dim,fontSize:16,cursor:hasChange?"pointer":"default",fontWeight:700,fontFamily:fontStack,transition:"background 0.2s,color 0.2s",opacity:hasChange?1:0.5}}
+          {(()=>{const hasChange=tmp&&plan&&tmp.some((p,i)=>p.count!==plan[i].count||p.notes!==plan[i].notes);return <button onClick={()=>{if(hasChange){setPlan(tmp);setShowPlan(false);if(!demoMode)fetch("/api/plan",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({plan:tmp})}).catch(()=>{});}}} disabled={!hasChange} style={{flex:1,padding:"11px 0",borderRadius:10,border:"none",background:hasChange?accent:t.border,color:hasChange?"#fff":t.dim,fontSize:16,cursor:hasChange?"pointer":"default",fontWeight:700,fontFamily:fontStack,transition:"background 0.2s,color 0.2s",opacity:hasChange?1:0.5}}
             onMouseEnter={e=>{if(hasChange)e.currentTarget.style.opacity="0.9";}}
             onMouseLeave={e=>{e.currentTarget.style.opacity=hasChange?"1":"0.5";}}>Save Plan</button>;})()}
         </div>
@@ -1042,18 +1052,18 @@ function App(){
           {userNotes.map(note=><div key={note.id} style={{padding:"12px 0",borderBottom:`1px solid ${t.border}18`}}>
             {editingNoteId===note.id?<div>
               <textarea value={editingNoteText} onChange={e=>setEditingNoteText(e.target.value)} autoFocus rows={3} style={{width:"100%",background:isDark?"rgba(255,255,255,0.08)":t.input||"#f5f5f5",border:`1px solid ${t.border}`,borderRadius:8,padding:"10px 12px",fontSize:14,color:t.text,fontFamily:fontStack,outline:"none",resize:"vertical",lineHeight:1.5,boxSizing:"border-box"}}
-                onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey&&editingNoteText.trim()){e.preventDefault();const updated=userNotes.map(n=>n.id===note.id?{...n,text:editingNoteText.trim()}:n);setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}setEditingNoteId(null);}if(e.key==="Escape")setEditingNoteId(null);}}
+                onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey&&editingNoteText.trim()){e.preventDefault();const updated=userNotes.map(n=>n.id===note.id?{...n,text:editingNoteText.trim()}:n);setUserNotes(updated);_syncNotes(updated);setEditingNoteId(null);}if(e.key==="Escape")setEditingNoteId(null);}}
                 onFocus={e=>e.currentTarget.style.borderColor=accent}
                 onBlur={e=>e.currentTarget.style.borderColor=t.border}/>
               <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:8}}>
                 <button onClick={()=>setEditingNoteId(null)} style={{background:"none",border:`1px solid ${t.border}`,borderRadius:8,color:t.dim,fontSize:13,fontWeight:500,padding:"5px 14px",cursor:"pointer",fontFamily:fontStack}}>Cancel</button>
-                <button onClick={()=>{if(editingNoteText.trim()){const updated=userNotes.map(n=>n.id===note.id?{...n,text:editingNoteText.trim()}:n);setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}setEditingNoteId(null);}}} style={{background:accent,border:"none",borderRadius:8,color:"#fff",fontSize:13,fontWeight:600,padding:"5px 14px",cursor:"pointer",fontFamily:fontStack}}>Save</button>
+                <button onClick={()=>{if(editingNoteText.trim()){const updated=userNotes.map(n=>n.id===note.id?{...n,text:editingNoteText.trim()}:n);setUserNotes(updated);_syncNotes(updated);setEditingNoteId(null);}}} style={{background:accent,border:"none",borderRadius:8,color:"#fff",fontSize:13,fontWeight:600,padding:"5px 14px",cursor:"pointer",fontFamily:fontStack}}>Save</button>
               </div>
             </div>:<div style={{display:"flex",alignItems:"flex-start",gap:10}}>
               <div style={{flex:1,fontSize:14,color:t.text,lineHeight:1.5,paddingTop:2}}>{note.text}</div>
               <div style={{display:"flex",gap:4,flexShrink:0}}>
                 {confirmDeleteId===note.id?<>
-                  <button onClick={()=>{const updated=userNotes.filter(n=>n.id!==note.id);setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}setConfirmDeleteId(null);}} style={{background:"#ff6b6b",border:"none",borderRadius:6,color:"#fff",fontSize:12,fontWeight:600,padding:"4px 10px",cursor:"pointer",fontFamily:fontStack}}>Delete</button>
+                  <button onClick={()=>{const updated=userNotes.filter(n=>n.id!==note.id);setUserNotes(updated);_syncNotes(updated);setConfirmDeleteId(null);}} style={{background:"#ff6b6b",border:"none",borderRadius:6,color:"#fff",fontSize:12,fontWeight:600,padding:"4px 10px",cursor:"pointer",fontFamily:fontStack}}>Delete</button>
                   <button onClick={()=>setConfirmDeleteId(null)} style={{background:"none",border:`1px solid ${t.border}`,borderRadius:6,color:t.dim,fontSize:12,fontWeight:500,padding:"4px 10px",cursor:"pointer",fontFamily:fontStack}}>Cancel</button>
                 </>:<>
                   <button onClick={()=>{setEditingNoteId(note.id);setEditingNoteText(note.text);setConfirmDeleteId(null);}} style={{background:"none",border:"none",cursor:"pointer",padding:4,opacity:0.6,transition:"opacity 0.15s"}} title="Edit"
@@ -1075,12 +1085,12 @@ function App(){
         {/* Add new note */}
         {notesModalAdd?<div style={{borderTop:`1px solid ${t.border}`,paddingTop:14}}>
           <textarea value={newNoteText} onChange={e=>setNewNoteText(e.target.value)} autoFocus placeholder="Write a note..." rows={3} style={{width:"100%",background:isDark?"rgba(255,255,255,0.08)":t.input||"#f5f5f5",border:`1px solid ${t.border}`,borderRadius:8,padding:"10px 12px",fontSize:14,color:t.text,fontFamily:fontStack,outline:"none",resize:"vertical",lineHeight:1.5,boxSizing:"border-box"}}
-            onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey&&newNoteText.trim()){e.preventDefault();const updated=[{id:Date.now(),text:newNoteText.trim()},...userNotes];setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}setNewNoteText("");setNotesModalAdd(false);}if(e.key==="Escape"){setNotesModalAdd(false);setNewNoteText("");}}}
+            onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey&&newNoteText.trim()){e.preventDefault();const updated=[{id:Date.now(),text:newNoteText.trim()},...userNotes];setUserNotes(updated);_syncNotes(updated);setNewNoteText("");setNotesModalAdd(false);}if(e.key==="Escape"){setNotesModalAdd(false);setNewNoteText("");}}}
             onFocus={e=>e.currentTarget.style.borderColor=accent}
             onBlur={e=>e.currentTarget.style.borderColor=t.border}/>
           <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:8}}>
             <button onClick={()=>{setNotesModalAdd(false);setNewNoteText("");}} style={{background:"none",border:`1px solid ${t.border}`,borderRadius:8,color:t.dim,fontSize:13,fontWeight:500,padding:"5px 14px",cursor:"pointer",fontFamily:fontStack}}>Cancel</button>
-            <button onClick={()=>{if(newNoteText.trim()){const updated=[{id:Date.now(),text:newNoteText.trim()},...userNotes];setUserNotes(updated);try{localStorage.setItem("userNotes",JSON.stringify(updated));}catch(e){}setNewNoteText("");setNotesModalAdd(false);}}} style={{background:accent,border:"none",borderRadius:8,color:"#fff",fontSize:13,fontWeight:600,padding:"5px 14px",cursor:"pointer",fontFamily:fontStack}}>Add</button>
+            <button onClick={()=>{if(newNoteText.trim()){const updated=[{id:Date.now(),text:newNoteText.trim()},...userNotes];setUserNotes(updated);_syncNotes(updated);setNewNoteText("");setNotesModalAdd(false);}}} style={{background:accent,border:"none",borderRadius:8,color:"#fff",fontSize:13,fontWeight:600,padding:"5px 14px",cursor:"pointer",fontFamily:fontStack}}>Add</button>
           </div>
         </div>:<div style={{borderTop:`1px solid ${t.border}`,paddingTop:14}}>
           <button onClick={()=>{setNotesModalAdd(true);setEditingNoteId(null);setNewNoteText("");}} style={{display:"flex",alignItems:"center",gap:8,background:"none",border:`1px solid ${t.border}`,borderRadius:10,color:accent,fontSize:14,padding:"9px 18px",cursor:"pointer",fontWeight:600,fontFamily:fontStack,width:"100%",justifyContent:"center",transition:"border-color 0.15s"}}
