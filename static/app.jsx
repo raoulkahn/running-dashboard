@@ -694,6 +694,7 @@ function App(){
               </div>
               <div style={{fontSize:11,color:"#999",lineHeight:1.4,marginTop:8}}>A personal scratchpad for running reminders and to-dos</div>
             </div>
+            {isAdmin&&<><div style={{borderTop:"1px solid #eee",margin:"8px 0 0"}}/><a href="/go/logout" style={{display:"block",textAlign:"center",fontSize:12,color:"#999",padding:"10px 0 2px",textDecoration:"none",fontFamily:fontStack}}>Log out</a></>}
           </div></>}
         </div>
       </div>

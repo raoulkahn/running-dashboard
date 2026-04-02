@@ -6,10 +6,26 @@ Gracefully no-ops when DATABASE_URL is not set (local dev / demo mode).
 
 import json
 import os
+from urllib.parse import urlparse, unquote
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 _pool = None
+
+
+def _parse_db_url(url):
+    """Parse DATABASE_URL into psycopg3 keyword conninfo string.
+    Avoids passing raw URI to the pool, which breaks on special
+    characters in passwords (common with Supabase)."""
+    parsed = urlparse(url)
+    host = unquote(parsed.hostname or "")
+    port = str(parsed.port or 5432)
+    user = unquote(parsed.username or "postgres")
+    password = unquote(parsed.password or "")
+    dbname = unquote(parsed.path.lstrip("/") or "postgres")
+    # Escape single quotes in password for conninfo format
+    password = password.replace("'", "\\'")
+    return f"host={host} port={port} user={user} password='{password}' dbname={dbname}"
 
 
 def _get_pool():
@@ -21,7 +37,8 @@ def _get_pool():
         return None
     try:
         from psycopg_pool import ConnectionPool
-        _pool = ConnectionPool(DATABASE_URL, min_size=1, max_size=5, open=True)
+        conninfo = _parse_db_url(DATABASE_URL)
+        _pool = ConnectionPool(conninfo, min_size=1, max_size=5, open=True)
         return _pool
     except Exception as e:
         print(f"[db] Failed to create connection pool: {e}")

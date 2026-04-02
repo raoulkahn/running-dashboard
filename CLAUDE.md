@@ -42,6 +42,9 @@ Flask backend + React frontend (single-page, inline styles).
 - **Always test locally before deploying to production** — run `flask run --debug` and verify changes work before any push. Never suggest deploying without local testing first.
 - **Before making changes, research the current implementation first** — never assume something is simple or doable without checking the actual code
 - **When referencing project context, always check CLAUDE.md and the project plan (`ai-run-partner-plan.md`) first**
+- **Always include clear commit messages with a description of what was built/changed** — subject line summarizes the change, body explains key details
+- **Proactively write and run unit tests when making significant changes** — ensure nothing breaks before committing
+- **When connecting two external services (e.g. Render to Supabase, Flask to Postgres), research compatibility first** — check for known issues like Python version support, IPv4/IPv6 networking, and connection string formats before writing any code
 - Feature branches for development, main stays stable for production
 
 ## Completed Phases

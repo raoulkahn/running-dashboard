@@ -105,6 +105,20 @@ def require_admin(f):
     return wrapped
 
 
+def _pw_form():
+    """Return the password form HTML with show/hide toggle (avoids f-string backslash issues)."""
+    return '''<form method="POST">
+    <div class="pw-wrap">
+      <input type="password" id="pw" name="password" placeholder="Password" autofocus>
+      <button type="button" class="pw-toggle" onclick="var i=document.getElementById('pw');var s=i.type==='password';i.type=s?'text':'password';this.querySelector('.eye-open').style.display=s?'none':'block';this.querySelector('.eye-off').style.display=s?'block':'none';" aria-label="Toggle password">
+        <svg class="eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg class="eye-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+      </button>
+    </div>
+    <button type="submit">Log In</button>
+  </form>'''
+
+
 @app.route("/go", methods=["GET", "POST"])
 def admin_gate():
     """Admin login page at an obscure URL."""
@@ -123,21 +137,23 @@ def admin_gate():
            background: #0d1117; color: #e6edf3; font-size: 15px; box-sizing: border-box;
            outline: none; margin-bottom: 14px; }}
   input:focus {{ border-color: #58a6ff; }}
-  button {{ width: 100%; padding: 10px; border-radius: 8px; border: none;
+  .pw-wrap {{ position: relative; }}
+  .pw-wrap input {{ padding-right: 42px; }}
+  .pw-toggle {{ position: absolute; right: 10px; top: 10px; background: none; border: none;
+                 cursor: pointer; padding: 0; width: 20px; height: 20px; }}
+  .pw-toggle svg {{ stroke: #666; }}
+  .pw-toggle:hover svg {{ stroke: #8b949e; }}
+  button[type=submit] {{ width: 100%; padding: 10px; border-radius: 8px; border: none;
             background: #238636; color: #fff; font-size: 15px; font-weight: 600;
             cursor: pointer; }}
-  button:hover {{ background: #2ea043; }}
+  button[type=submit]:hover {{ background: #2ea043; }}
   .msg {{ font-size: 13px; color: #8b949e; margin-top: 12px; }}
   .err {{ color: #f85149; }}
   a {{ color: #58a6ff; text-decoration: none; }}
 </style></head><body>
 <div class="box">
   <h2>{"Already logged in" if already else "Admin"}</h2>
-  {"<p class='msg'>You're logged in. <a href='/go/logout'>Log out</a> · <a href='/'>Dashboard</a></p>" if already else '''
-  <form method="POST">
-    <input type="password" name="password" placeholder="Password" autofocus>
-    <button type="submit">Log In</button>
-  </form>'''}
+  {"<p class='msg'>You're logged in. <a href='/go/logout'>Log out</a> · <a href='/'>Dashboard</a></p>" if already else _pw_form()}
 </div></body></html>"""
 
     # POST — check password
@@ -165,7 +181,13 @@ def admin_gate():
   input {{ width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #30363d;
            background: #0d1117; color: #e6edf3; font-size: 15px; box-sizing: border-box;
            outline: none; margin-bottom: 14px; }}
-  button {{ width: 100%; padding: 10px; border-radius: 8px; border: none;
+  .pw-wrap {{ position: relative; }}
+  .pw-wrap input {{ padding-right: 42px; }}
+  .pw-toggle {{ position: absolute; right: 10px; top: 10px; background: none; border: none;
+                 cursor: pointer; padding: 0; width: 20px; height: 20px; }}
+  .pw-toggle svg {{ stroke: #666; }}
+  .pw-toggle:hover svg {{ stroke: #8b949e; }}
+  button[type=submit] {{ width: 100%; padding: 10px; border-radius: 8px; border: none;
             background: #238636; color: #fff; font-size: 15px; font-weight: 600;
             cursor: pointer; }}
   .err {{ color: #f85149; font-size: 13px; margin-bottom: 12px; }}
@@ -173,10 +195,7 @@ def admin_gate():
 <div class="box">
   <h2>Admin</h2>
   <div class="err">Wrong password</div>
-  <form method="POST">
-    <input type="password" name="password" placeholder="Password" autofocus>
-    <button type="submit">Log In</button>
-  </form>
+  {_pw_form()}
 </div></body></html>"""
 
 
