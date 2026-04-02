@@ -1,5 +1,5 @@
 """
-Database module — Supabase/Postgres via psycopg2.
+Database module — Supabase/Postgres via psycopg3.
 Provides connection pooling, schema init, and CRUD helpers.
 Gracefully no-ops when DATABASE_URL is not set (local dev / demo mode).
 """
@@ -20,8 +20,8 @@ def _get_pool():
     if not DATABASE_URL:
         return None
     try:
-        import psycopg2.pool
-        _pool = psycopg2.pool.SimpleConnectionPool(1, 5, DATABASE_URL)
+        from psycopg_pool import ConnectionPool
+        _pool = ConnectionPool(DATABASE_URL, min_size=1, max_size=5, open=True)
         return _pool
     except Exception as e:
         print(f"[db] Failed to create connection pool: {e}")
