@@ -13,11 +13,11 @@ const { useState, useCallback, useEffect, useRef } = React;
 
 const THEMES = {
   // ── Dark (5) ──
-  midnight:   { name:"Midnight",     tint:"#0e1428", accent:"#5b8dee", accent2:"#e8a04a", bg:"linear-gradient(170deg,#010410 0%,#081230 50%,#121c3e 100%)", card:"#0e1428", card2:"#121a34", border:"#1e2e50", input:"#0a1020", text:"#e2e8f0", dim:"#5a6a8a", dimBright:"#7a8aaa", swatch:"#5b8dee" },
-  ocean:      { name:"Ocean Dark",   tint:"#0b1a2e", accent:"#00b4d8", accent2:"#ff6b9d", bg:"linear-gradient(170deg,#010814 0%,#081c34 50%,#122844 100%)", card:"#0b1a2e", card2:"#0f2038", border:"#183854", input:"#081422", text:"#e2e8f0", dim:"#64748b", dimBright:"#8494a7", swatch:"#00b4d8" },
-  strava:     { name:"Strava Dark",  tint:"#141418", accent:"#FC4C02", accent2:"#00b4d8", bg:"linear-gradient(170deg,#040404 0%,#0c0c12 50%,#181820 100%)", card:"#141418", card2:"#1a1a1e", border:"#2a2a30", input:"#101014", text:"#e2e8f0", dim:"#7a7a84", dimBright:"#9a9aa4", swatch:"#FC4C02" },
-  forest:     { name:"Forest Dark",  tint:"#0c1e18", accent:"#06d6a0", accent2:"#f472b6", bg:"linear-gradient(170deg,#010a06 0%,#081c14 50%,#122c22 100%)", card:"#0c1e18", card2:"#102620", border:"#184034", input:"#091610", text:"#e2e8f0", dim:"#5a8a78", dimBright:"#7aaa98", swatch:"#06d6a0" },
-  slate:      { name:"Slate",        tint:"#16181e", accent:"#94a3b8", accent2:"#a78bfa", bg:"linear-gradient(170deg,#060708 0%,#121620 50%,#1c2030 100%)", card:"#16181e", card2:"#1c1e26", border:"#2a2e38", input:"#101214", text:"#e2e8f0", dim:"#64748b", dimBright:"#8494a7", swatch:"#94a3b8" },
+  midnight:   { name:"Midnight",     tint:"#0e1428", accent:"#5b8dee", accent2:"#e8a04a", bg:"linear-gradient(170deg,#010410 0%,#081230 50%,#121c3e 100%)", card:"#0e1428", card2:"#121a34", border:"#1e2e50", input:"#0a1020", text:"#e2e8f0", dim:"#7a8aaa"/*was #5a6a8a*/, dimBright:"#7a8aaa", swatch:"#5b8dee" },
+  ocean:      { name:"Ocean Dark",   tint:"#0b1a2e", accent:"#00b4d8", accent2:"#ff6b9d", bg:"linear-gradient(170deg,#010814 0%,#081c34 50%,#122844 100%)", card:"#0b1a2e", card2:"#0f2038", border:"#183854", input:"#081422", text:"#e2e8f0", dim:"#8494a7", dimBright:"#8494a7", swatch:"#00b4d8" },
+  strava:     { name:"Strava Dark",  tint:"#141418", accent:"#FC4C02", accent2:"#00b4d8", bg:"linear-gradient(170deg,#040404 0%,#0c0c12 50%,#181820 100%)", card:"#141418", card2:"#1a1a1e", border:"#2a2a30", input:"#101014", text:"#e2e8f0", dim:"#9a9aa4"/*was #7a7a84*/, dimBright:"#9a9aa4", swatch:"#FC4C02" },
+  forest:     { name:"Forest Dark",  tint:"#0c1e18", accent:"#06d6a0", accent2:"#f472b6", bg:"linear-gradient(170deg,#010a06 0%,#081c14 50%,#122c22 100%)", card:"#0c1e18", card2:"#102620", border:"#184034", input:"#091610", text:"#e2e8f0", dim:"#7aaa98"/*was #5a8a78*/, dimBright:"#7aaa98", swatch:"#06d6a0" },
+  slate:      { name:"Slate",        tint:"#16181e", accent:"#94a3b8", accent2:"#a78bfa", bg:"linear-gradient(170deg,#060708 0%,#121620 50%,#1c2030 100%)", card:"#16181e", card2:"#1c1e26", border:"#2a2e38", input:"#101214", text:"#e2e8f0", dim:"#8494a7"/*was #64748b*/, dimBright:"#8494a7", swatch:"#94a3b8" },
   // ── Mid-tone (3) — soft muted pastels ──
   storm:      { name:"Storm",        tint:"#c4d8ec", accent:"#4a90d8", accent2:"#e8a04a", bg:"linear-gradient(170deg,#d8e8f4 0%,#c4d8ec 50%,#b0c8e0 100%)", card:"#e0eaf4", card2:"#d4e2f0", border:"#b0c4d8", input:"#d0deec", text:"#1c2a3a", dim:"#6080a0", dimBright:"#7898b8", swatch:"#4a90d8" },
   twilight:   { name:"Twilight",     tint:"#d4c8e8", accent:"#8b6fd8", accent2:"#e8a84a", bg:"linear-gradient(170deg,#e4ddf0 0%,#d4c8e8 50%,#c4b4dc 100%)", card:"#ece6f4", card2:"#e2daf0", border:"#c4b4d8", input:"#ddd4ec", text:"#221a30", dim:"#7a6ea0", dimBright:"#9488b8", swatch:"#8b6fd8" },
@@ -159,8 +159,7 @@ function Gauge({value,size=80,trackColor="#1e2d3d",textColor="#e2e8f0",dimColor=
     <path d={fullArc} fill="none" stroke={trackColor} strokeWidth="6" strokeLinecap="round"/>
     <path d={filledArc} fill="none" stroke={B.green} strokeWidth="6" strokeLinecap="round"
       style={{strokeDasharray:filledLen,strokeDashoffset:animReady?0:filledLen,transition:animReady?"stroke-dashoffset 0.8s ease-out":"none"}}/>
-    <text x="50" y="47" textAnchor="middle" fill={textColor} fontSize="24" fontWeight="700" fontFamily={fontStack}>{value}</text>
-    <text x="50" y="64" textAnchor="middle" fill={dimColor} fontSize="9" fontFamily={fontStack}>VO₂ Max</text>
+    <text x="50" y="52" textAnchor="middle" fill={textColor} fontSize="24" fontWeight="700" fontFamily={fontStack}>{value}</text>
   </svg>;
 }
 
@@ -383,6 +382,8 @@ function App(){
   const [mapModal,setMapModal]=useState(null);
   const [editGoal,setEditGoal]=useState(false);
   const [goalInput,setGoalInput]=useState("");
+  const [editVo2,setEditVo2]=useState(false);
+  const [vo2Input,setVo2Input]=useState("");
   const [expandedNotes,setExpandedNotes]=useState({});
   const [demoBannerDismissed,setDemoBannerDismissed]=useState(false);
   const DEFAULT_NOTES=[{id:1,text:"Superblast 3 launches March 1st"},{id:2,text:"Walnut Creek Run this Sunday - 8am"},{id:3,text:"Don\u2019t forget to sign up for SF Marathon"}];
@@ -526,7 +527,7 @@ function App(){
   const resolvedWeekDays=demoMode?WEEK_DAYS:(liveWeekDays||WEEK_DAYS);
   const resolvedPastWeeks=demoMode?PAST_WEEKS:(livePastWeeks||PAST_WEEKS);
   const resolvedShoes=demoMode?ALL_SHOES:(liveProfile?liveProfile.shoes:ALL_SHOES);
-  const resolvedName=demoMode?"DJ Run":(liveProfile?liveProfile.name:"\u2014");
+  const resolvedName=demoMode?"DJ Run":(isAdmin?"Raoul":(liveProfile?liveProfile.name:"\u2014"));
   const resolvedLocation=demoMode?"Concord, CA":(liveProfile?[liveProfile.city,liveProfile.state].filter(Boolean).join(", "):"\u2014");
   const resolvedYtdMiles=demoMode?198.7:(liveProfile?liveProfile.ytd_miles:0);
   const resolvedAvatar=demoMode?null:(liveProfile?liveProfile.avatar:null);
@@ -876,17 +877,30 @@ function App(){
       <div style={{display:"flex",flexDirection:"column",gap:20}}>
 
         {/* Profile + Predictions */}
-        <div style={anim(100)}>{!demoMode&&loadingProfile?<LoadingCard t={t} rows={3} label="PROFILE"/>:<div className="card-hover" style={{...crd,padding:"12px 20px"}}>
+        <div style={anim(100)}>{!demoMode&&loadingProfile?<LoadingCard t={t} rows={3} label="PROFILE"/>:<div className="card-hover" style={crd}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+            <div style={lbl}>PROFILE</div>
+            {isAdmin&&<button onClick={()=>{setVo2Input(String(vo2));setEditVo2(true);}} style={{background:"none",border:"none",color:accent,fontSize:13,cursor:"pointer",fontWeight:600,fontFamily:fontStack}}>Edit</button>}
+          </div>
           <div style={{display:"flex",alignItems:"flex-start",gap:14}}>
-            {resolvedAvatar?<img src={resolvedAvatar} alt="" style={{width:44,height:44,borderRadius:8,objectFit:"cover",flexShrink:0,marginTop:2}}/>:demoMode&&<div style={{width:44,height:44,borderRadius:8,background:accent+"22",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2}}>
+            {resolvedAvatar?<img src={resolvedAvatar} alt="" style={{width:66,height:66,borderRadius:8,objectFit:"cover",flexShrink:0,marginTop:2}}/>:demoMode&&<div style={{width:44,height:44,borderRadius:8,background:accent+"22",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2}}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>}
             <div style={{flex:1,minWidth:0,paddingTop:2}}>
               <div style={{fontWeight:700,fontSize:20,letterSpacing:"-0.01em",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{resolvedName}</div>
-              <div style={{fontSize:15,color:accent,marginTop:2,fontWeight:500,opacity:0.7,whiteSpace:"nowrap"}}>{resolvedLocation}</div>
+              {demoMode&&<div style={{fontSize:15,color:accent,marginTop:2,fontWeight:500,opacity:0.7,whiteSpace:"nowrap"}}>{resolvedLocation}</div>}
             </div>
-            <div style={{textAlign:"center",flexShrink:0}}>
-              <Gauge value={vo2} size={72} trackColor={t.border} textColor={t.text} dimColor={t.dim} animate={mounted}/>
+            <div style={{textAlign:"center",flexShrink:0,marginRight:10,marginTop:-4}}>
+              {editVo2?<div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"center"}}>
+                <input type="text" inputMode="numeric" maxLength={2} value={vo2Input} onChange={e=>{const v=e.target.value.replace(/[^0-9]/g,"").slice(0,2);setVo2Input(v);}} style={{width:56,background:t.input,border:`1px solid ${t.border}`,borderRadius:8,color:t.text,padding:"6px",fontSize:16,textAlign:"center",fontFamily:fontStack,outline:"none"}} autoFocus onKeyDown={e=>{if(e.key==="Enter"){const v=parseInt(vo2Input)||0;if(v>0){setVo2(v);setEditVo2(false);if(!demoMode)fetch("/api/settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({vo2:v})}).catch(()=>{});}}if(e.key==="Escape")setEditVo2(false);}}/>
+                <div style={{display:"flex",gap:6}}>
+                  <button onClick={()=>{const v=parseFloat(vo2Input)||0;if(v>0){setVo2(v);setEditVo2(false);if(!demoMode)fetch("/api/settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({vo2:v})}).catch(()=>{});}}} style={{background:accent,border:"none",borderRadius:6,color:"#fff",padding:"4px 12px",fontSize:12,cursor:"pointer",fontWeight:600,fontFamily:fontStack}}>Save</button>
+                  <button onClick={()=>setEditVo2(false)} style={{background:"none",border:`1px solid ${t.border}`,borderRadius:6,color:t.dim,padding:"4px 10px",fontSize:12,cursor:"pointer",fontFamily:fontStack}}>Cancel</button>
+                </div>
+              </div>:<>
+                <Gauge value={vo2} size={84} trackColor={t.border} textColor={t.text} dimColor={t.dim} animate={mounted}/>
+                <div style={{fontSize:14,color:t.dim,fontWeight:500,marginTop:2}}>VO₂ Max</div>
+              </>}
             </div>
           </div>
         </div>}</div>
