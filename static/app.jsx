@@ -506,11 +506,13 @@ function App(){
 
   // Fetch AI assistant message (both demo + live — demo sends demo context)
   useEffect(()=>{
+    // Fast cached message from Supabase (stale-while-revalidate)
+    if(!demoMode){fetch("/api/assistant-cached").then(r=>r.json()).then(d=>{if(d.message)setAssistantMsg(d.message);}).catch(()=>{});}
     setLoadingAssistant(true);
     const url=demoMode?"/api/assistant?demo=1":"/api/assistant";
     fetch(url).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
       .then(d=>{if(d.error)throw new Error(d.error);setAssistantMsg(d.message);})
-      .catch(()=>{setAssistantMsg(null);})
+      .catch(()=>{if(!assistantMsg)setAssistantMsg(null);})
       .finally(()=>setLoadingAssistant(false));
   },[demoMode]);
 
@@ -730,7 +732,7 @@ function App(){
         </div>}
 
         {/* AI Assistant */}
-        <div style={anim(100)}>{loadingAssistant?<LoadingCard t={t} rows={2} label="AI ASSISTANT"/>:<div className="card-hover" style={{...crd,background:`linear-gradient(135deg,${t.card},${t.card2})`,borderColor:accent2+"30"}}>
+        <div style={anim(100)}>{loadingAssistant&&!assistantMsg?<LoadingCard t={t} rows={2} label="AI ASSISTANT"/>:<div className="card-hover" style={{...crd,background:`linear-gradient(135deg,${t.card},${t.card2})`,borderColor:accent2+"30"}}>
           <div style={{...lbl,marginBottom:8}}>AI ASSISTANT</div>
           <div style={{fontSize:18,lineHeight:1.6,fontWeight:400,color:t.text+"ee"}}>
             {(()=>{const raw=assistantMsg||"You've logged 26.2 of your 50-mile goal this week with 3 runs in the books.\n- It's clearing up to 58\u00b0F and sunny by noon \u2014 a good window for that interval run you still have on the plan\n- An 8-miler today would keep you right on pace heading into the weekend";const lines=raw.split("\n");const intro=[];const bullets=[];lines.forEach(l=>{const trimmed=l.trim();if(trimmed.startsWith("- "))bullets.push(trimmed.slice(2));else if(trimmed)intro.push(trimmed);});return <>{intro.length>0&&<div>{intro.join(" ")}</div>}{bullets.length>0&&<ul style={{margin:"10px 0 0",paddingLeft:22}}>{bullets.map((b,i)=><li key={i} style={{marginBottom:i<bullets.length-1?6:0}}>{b}</li>)}</ul>}</>;})()}

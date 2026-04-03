@@ -543,9 +543,47 @@ def api_assistant():
             profile=profile,
             goal_mi=goal,
         )
+
+        # Cache to Supabase for instant loads
+        if result.get("mode") != "error":
+            _cache_assistant(result)
+
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# ---------------------------------------------------------------------------
+# Assistant cache (stale-while-revalidate)
+# ---------------------------------------------------------------------------
+def _cache_assistant(result):
+    """Write assistant message to Supabase for instant page loads."""
+    if db.is_available():
+        db.db_set_setting("assistant_cache_db", {
+            "message": result.get("message", ""),
+            "mode": result.get("mode", ""),
+            "cached_at": int(_time.time()),
+        })
+
+
+@app.route("/api/assistant-cached")
+def api_assistant_cached():
+    """Fast assistant message — serves Supabase cache, falls back to full generation."""
+    try:
+        # Serve any cached message — even if stale. Background /api/assistant will refresh.
+        if db.is_available():
+            cached = db.db_get_setting("assistant_cache_db")
+            if cached and cached.get("message"):
+                return jsonify({
+                    "message": cached["message"],
+                    "mode": cached.get("mode", ""),
+                    "fromCache": True,
+                })
+
+        # No cache at all (first-ever visit)
+        return jsonify({"message": None, "fromCache": False})
+    except Exception as e:
+        return jsonify({"message": None, "fromCache": False})
 
 
 @app.route("/api/assistant-debug")
