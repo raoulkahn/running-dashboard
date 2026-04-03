@@ -53,6 +53,7 @@ Flask backend + React frontend (single-page, inline styles).
 - **App must always serve fallback content when any external service is down** — the page should never be blank. File-based fallback for DB, cached data for APIs.
 - **Before first deploy with new dependencies, verify the production runtime** — check Python version, OS, and architecture compatibility before writing code
 - **Test failure modes before deploying, not just happy path** — ask: "What happens if this service is slow, unreachable, or drops connections?"
+- **Read STATUS.md before starting any new work session** — it contains current project state, what's broken, what's in progress, and priority order
 - Feature branches for development, main stays stable for production
 
 ## Completed Phases
