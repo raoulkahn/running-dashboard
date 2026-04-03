@@ -25,7 +25,7 @@ def _parse_db_url(url):
     dbname = unquote(parsed.path.lstrip("/") or "postgres")
     # Escape single quotes in password for conninfo format
     password = password.replace("'", "\\'")
-    return f"host={host} port={port} user={user} password='{password}' dbname={dbname}"
+    return f"host={host} port={port} user={user} password='{password}' dbname={dbname} connect_timeout=5"
 
 
 def _get_pool():
@@ -43,7 +43,8 @@ def _get_pool():
             min_size=0,           # don't require connections at startup
             max_size=5,
             open=False,           # non-blocking — don't connect during init
-            max_lifetime=300,     # recycle connections every 5 min (prevents stale SSL)
+            max_lifetime=120,     # recycle connections every 2 min (prevents stale SSL)
+            max_idle=60,          # close idle connections after 60s
             reconnect_timeout=5,  # don't spend forever retrying failed connections
         )
         _pool.open(wait=False)    # start pool in background, don't block
@@ -59,7 +60,7 @@ def _conn():
     if not pool:
         return None
     try:
-        return pool.getconn(timeout=5)  # fail fast, don't hang gunicorn workers
+        return pool.getconn(timeout=3)  # fail fast, don't hang gunicorn workers
     except Exception as e:
         print(f"[db] Failed to get connection: {e}")
         return None
