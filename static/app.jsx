@@ -435,7 +435,13 @@ function App(){
   useEffect(()=>{
     if(demoMode)return;
     setApiError(null);
-    fetch("/api/status").then(r=>r.json()).then(d=>{setConnected(d.connected);setIsAdmin(!!d.isAdmin);if(d.settings&&d.settings.favoriteShoes)setFavoriteShoes(d.settings.favoriteShoes);if(d.isAdmin&&d.settings&&d.settings.theme&&THEMES[d.settings.theme]){setThemeKey(d.settings.theme);try{localStorage.setItem("themeKey",d.settings.theme);}catch(e){}}}).catch(()=>setConnected(false)).finally(()=>setStatusChecked(true));
+    fetch("/api/status").then(r=>r.json()).then(d=>{
+      setConnected(d.connected);setIsAdmin(!!d.isAdmin);
+      if(d.settings&&d.settings.favoriteShoes)setFavoriteShoes(d.settings.favoriteShoes);
+      if(d.isAdmin&&d.settings&&d.settings.theme&&THEMES[d.settings.theme]){setThemeKey(d.settings.theme);try{localStorage.setItem("themeKey",d.settings.theme);}catch(e){}}
+      // Guest + no Strava token → fall back to demo data silently
+      if(!d.isAdmin&&!d.connected){setDemoMode(true);return;}
+    }).catch(()=>{setConnected(false);setDemoMode(true);}).finally(()=>setStatusChecked(true));
     // Load plan and notes from server
     fetch("/api/plan").then(r=>r.json()).then(d=>{if(d.plan&&Array.isArray(d.plan)&&d.plan.length>0)setPlan(d.plan);}).catch(()=>{});
     fetch("/api/notes").then(r=>r.json()).then(d=>{if(d.notes&&Array.isArray(d.notes)&&d.notes.length>0)setUserNotes(d.notes);}).catch(()=>{});
@@ -446,17 +452,17 @@ function App(){
     setLoadingProfile(true);
     fetch("/api/profile").then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
       .then(d=>{if(d.error)throw new Error(d.error);setLiveProfile(d);})
-      .catch(e=>setApiError(p=>(p?p+"; ":"")+"Profile: "+e.message))
+      .catch(()=>{})
       .finally(()=>setLoadingProfile(false));
     setLoadingActivities(true);
     fetch("/api/activities").then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
       .then(d=>{if(d.error)throw new Error(d.error);setLiveActivities(d.activities);setLiveWeekDays(d.weekDays);setLiveTotalMi(d.totalMi);setLiveGoalMi(d.goalMi);if(d.vo2!=null)setVo2(d.vo2);})
-      .catch(e=>setApiError(p=>(p?p+"; ":"")+"Activities: "+e.message))
+      .catch(()=>{})
       .finally(()=>setLoadingActivities(false));
     setLoadingWeeks(true);
     fetch("/api/weeks").then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
       .then(d=>{if(d.error)throw new Error(d.error);setLivePastWeeks(d.weeks);})
-      .catch(e=>setApiError(p=>(p?p+"; ":"")+"Weeks: "+e.message))
+      .catch(()=>{})
       .finally(()=>setLoadingWeeks(false));
   },[demoMode]);
 
@@ -638,7 +644,7 @@ function App(){
         </div>
         <div>
           <h1 style={{margin:0,fontSize:30,fontWeight:700,letterSpacing:"-0.02em"}}>AI Run Partner</h1>
-          <div style={{fontSize:16,color:t.dim,marginTop:3,fontWeight:500}}>{demoMode?(APP_MODE==="demo"?"Interactive demo":"Demo mode"):connected?"Live Fitness Data from Strava and Garmin":"Connecting to Strava\u2026"}</div>
+          <div style={{fontSize:16,color:t.dim,marginTop:3,fontWeight:500}}>{demoMode?(APP_MODE==="demo"?"Interactive demo":"Demo mode"):connected?"Live Fitness Data from Strava and Garmin":(isAdmin?"Connecting to Strava\u2026":"Interactive demo")}</div>
         </div>
       </div>
       <div style={{display:"flex",gap:14,alignItems:"center"}}>
@@ -713,8 +719,8 @@ function App(){
       </div>
     </div>
 
-    {/* Error banner */}
-    {apiError&&<div style={{background:"#ff6b6b14",border:"1px solid #ff6b6b33",borderRadius:10,padding:"12px 16px",marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+    {/* Error banner — admin only */}
+    {isAdmin&&apiError&&<div style={{background:"#ff6b6b14",border:"1px solid #ff6b6b33",borderRadius:10,padding:"12px 16px",marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
       <span style={{fontSize:15,color:B.coral}}>{apiError}</span>
       <button onClick={()=>setApiError(null)} style={{background:"none",border:"none",color:B.coral,cursor:"pointer",fontSize:18,padding:"0 4px",fontFamily:fontStack}}>×</button>
     </div>}
