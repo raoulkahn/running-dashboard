@@ -38,7 +38,15 @@ def _get_pool():
     try:
         from psycopg_pool import ConnectionPool
         conninfo = _parse_db_url(DATABASE_URL)
-        _pool = ConnectionPool(conninfo, min_size=1, max_size=5, open=True)
+        _pool = ConnectionPool(
+            conninfo,
+            min_size=0,           # don't require connections at startup
+            max_size=5,
+            open=False,           # non-blocking — don't connect during init
+            max_lifetime=300,     # recycle connections every 5 min (prevents stale SSL)
+            reconnect_timeout=5,  # don't spend forever retrying failed connections
+        )
+        _pool.open(wait=False)    # start pool in background, don't block
         return _pool
     except Exception as e:
         print(f"[db] Failed to create connection pool: {e}")
@@ -51,7 +59,7 @@ def _conn():
     if not pool:
         return None
     try:
-        return pool.getconn()
+        return pool.getconn(timeout=5)  # fail fast, don't hang gunicorn workers
     except Exception as e:
         print(f"[db] Failed to get connection: {e}")
         return None

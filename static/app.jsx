@@ -386,6 +386,12 @@ function App(){
   const [vo2Input,setVo2Input]=useState("");
   const [expandedNotes,setExpandedNotes]=useState({});
   const [demoBannerDismissed,setDemoBannerDismissed]=useState(false);
+  const [coachOpen,setCoachOpen]=useState(false);
+  const [coachInput,setCoachInput]=useState("");
+  const [coachLoading,setCoachLoading]=useState(false);
+  const [coachResponse,setCoachResponse]=useState(null);
+  const [coachSuccess,setCoachSuccess]=useState(null);
+  const [coachChecked,setCoachChecked]=useState({});
   const DEFAULT_NOTES=[{id:1,text:"Superblast 3 launches March 1st"},{id:2,text:"Walnut Creek Run this Sunday - 8am"},{id:3,text:"Don\u2019t forget to sign up for SF Marathon"}];
   const [notesEnabled,setNotesEnabled]=useState(()=>{try{return localStorage.getItem("notesEnabled")!=="false";}catch(e){return true;}});
   const [userNotes,setUserNotes]=useState(()=>{try{const s=localStorage.getItem("userNotes");return s?JSON.parse(s):DEFAULT_NOTES;}catch(e){return DEFAULT_NOTES;}});
@@ -737,6 +743,89 @@ function App(){
           <div style={{...lbl,marginBottom:8}}>AI ASSISTANT</div>
           <div style={{fontSize:18,lineHeight:1.6,fontWeight:400,color:t.text+"ee"}}>
             {(()=>{const raw=assistantMsg||"You've logged 26.2 of your 50-mile goal this week with 3 runs in the books.\n- It's clearing up to 58\u00b0F and sunny by noon \u2014 a good window for that interval run you still have on the plan\n- An 8-miler today would keep you right on pace heading into the weekend";const lines=raw.split("\n");const intro=[];const bullets=[];lines.forEach(l=>{const trimmed=l.trim();if(trimmed.startsWith("- "))bullets.push(trimmed.slice(2));else if(trimmed)intro.push(trimmed);});return <>{intro.length>0&&<div>{intro.join(" ")}</div>}{bullets.length>0&&<ul style={{margin:"10px 0 0",paddingLeft:22}}>{bullets.map((b,i)=><li key={i} style={{marginBottom:i<bullets.length-1?6:0}}>{b}</li>)}</ul>}</>;})()}
+          </div>
+          {/* Coach Lisa */}
+          <div style={{borderTop:`1px solid ${t.border}44`,marginTop:16,paddingTop:14}}>
+            {!coachOpen?<button onClick={()=>setCoachOpen(true)} style={{display:"flex",alignItems:"center",gap:8,background:"none",border:"none",cursor:"pointer",padding:0,fontFamily:fontStack}}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={t.dim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span style={{fontSize:14,color:t.dim,fontWeight:500}}>Ask Coach Lisa...</span>
+            </button>
+            :<div>
+              <div style={{display:"flex",gap:8,alignItems:"flex-end"}}>
+                <div style={{flex:1}}>
+                  <input type="text" value={coachInput} onChange={e=>setCoachInput(e.target.value.slice(0,150))} maxLength={150} placeholder="Adjust today's run or ask a quick question..." style={{width:"100%",padding:"10px 14px",borderRadius:10,border:`1px solid ${t.border}`,background:t.input,color:t.text,fontSize:14,fontFamily:fontStack,outline:"none",boxSizing:"border-box"}} autoFocus onKeyDown={e=>{if(e.key==="Enter"&&coachInput.trim()&&!coachLoading){setCoachLoading(true);setCoachResponse(null);fetch("/api/coach",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:coachInput.trim()})}).then(r=>r.json()).then(d=>setCoachResponse(d)).catch(()=>setCoachResponse({error:"Request failed"})).finally(()=>setCoachLoading(false));}}}/>
+                  <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
+                    <button onClick={()=>{setCoachOpen(false);setCoachInput("");setCoachResponse(null);}} style={{background:"none",border:"none",color:t.dim,fontSize:12,cursor:"pointer",fontFamily:fontStack,padding:0}}>Close</button>
+                    <span style={{fontSize:12,color:t.dim}}>{coachInput.length} / 150</span>
+                  </div>
+                </div>
+                <button onClick={()=>{if(!coachInput.trim()||coachLoading)return;setCoachLoading(true);setCoachResponse(null);fetch("/api/coach",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:coachInput.trim()})}).then(r=>r.json()).then(d=>setCoachResponse(d)).catch(()=>setCoachResponse({error:"Request failed"})).finally(()=>setCoachLoading(false));}} disabled={!coachInput.trim()||coachLoading} style={{padding:"10px 18px",borderRadius:10,border:"none",background:coachInput.trim()&&!coachLoading?accent:t.border,color:coachInput.trim()&&!coachLoading?"#fff":t.dim,fontSize:14,fontWeight:600,cursor:coachInput.trim()&&!coachLoading?"pointer":"default",fontFamily:fontStack,flexShrink:0,marginBottom:20}}>
+                  {coachLoading?<div style={{width:16,height:16,border:`2px solid ${t.border}`,borderTopColor:"#fff",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>:"Send"}
+                </button>
+              </div>
+              {/* Loading */}
+              {coachLoading&&!coachResponse&&<div style={{display:"flex",alignItems:"center",gap:8,marginTop:12,padding:12}}>
+                <div style={{width:16,height:16,border:`2px solid ${t.border}`,borderTopColor:accent,borderRadius:"50%",animation:"spin 0.8s linear infinite",flexShrink:0}}/>
+                <span style={{fontSize:13,color:t.dim,fontWeight:500}}>Thinking...</span>
+              </div>}
+              {/* Success message */}
+              {coachSuccess&&<div style={{marginTop:10,padding:"10px 14px",borderRadius:8,borderLeft:`3px solid ${B.green}`,background:isDark?"rgba(6,214,160,0.06)":"rgba(6,214,160,0.08)",fontSize:13,color:t.text,fontWeight:500}}>{coachSuccess}</div>}
+              {/* Response cards */}
+              {coachResponse&&(()=>{
+                const r=coachResponse;
+                const cardBase={marginTop:10,padding:"12px 14px",borderRadius:8,background:isDark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.03)"};
+                const btnPrimary={padding:"6px 16px",borderRadius:8,border:"none",background:accent,color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:fontStack};
+                const btnSecondary={padding:"6px 16px",borderRadius:8,border:`1px solid ${t.border}`,background:"transparent",color:t.dim,fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:fontStack};
+                const dismiss=()=>setCoachResponse(null);
+                // Error: limit reached
+                if(r.error==="limit_reached")return <div style={{...cardBase,borderLeft:`3px solid ${t.border}`,color:t.dim,fontSize:13}}>
+                  Coach Lisa has reached the monthly limit. Check back next month.
+                  <div style={{marginTop:8}}><button onClick={dismiss} style={btnSecondary}>Got it</button></div>
+                </div>;
+                // Error: other
+                if(r.error)return <div style={{...cardBase,borderLeft:`3px solid ${B.coral}`,color:t.dim,fontSize:13}}>
+                  Something went wrong. Try again.
+                  <div style={{marginTop:8}}><button onClick={dismiss} style={btnSecondary}>Dismiss</button></div>
+                </div>;
+                // Type: advice
+                if(r.type==="advice")return <div style={{...cardBase,borderLeft:`3px solid ${accent}`}}>
+                  <div style={{fontSize:14,fontWeight:600,color:t.text,lineHeight:1.5}}>{r.answer}</div>
+                  {r.plan&&<div style={{fontSize:13,color:t.dimBright,marginTop:6,lineHeight:1.4}}>{r.plan}</div>}
+                  {r.impact&&<div style={{fontSize:12,color:t.dim,marginTop:4,lineHeight:1.4}}>{r.impact}</div>}
+                  <div style={{marginTop:10}}><button onClick={dismiss} style={btnSecondary}>Got it</button></div>
+                </div>;
+                // Type: plan_change
+                if(r.type==="plan_change")return <div style={{...cardBase,borderLeft:`3px solid ${accent}`}}>
+                  <div style={{fontSize:14,fontWeight:600,color:t.text,lineHeight:1.5}}>{r.answer}</div>
+                  {r.plan&&<div style={{fontSize:13,color:t.dimBright,marginTop:6,lineHeight:1.4}}>{r.plan}</div>}
+                  {r.impact&&<div style={{fontSize:12,color:t.dim,marginTop:4,lineHeight:1.4}}>{r.impact}</div>}
+                  <div style={{display:"flex",gap:8,marginTop:10}}>
+                    {isAdmin&&<button onClick={()=>{fetch("/api/plan",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({plan:plan})}).then(()=>{setCoachResponse(null);setCoachSuccess("Plan updated");setTimeout(()=>setCoachSuccess(null),3000);}).catch(()=>{});}} style={btnPrimary}>Apply to today's plan</button>}
+                    <button onClick={dismiss} style={btnSecondary}>{isAdmin?"Dismiss":"Got it"}</button>
+                  </div>
+                </div>;
+                // Type: agent_action (admin only — guests never see this)
+                if(r.type==="agent_action"&&r.actions&&r.actions.length>0){
+                  return <div style={{...cardBase,borderLeft:`3px solid ${B.gold}`}}>
+                    <div style={{fontSize:14,fontWeight:600,color:t.text,lineHeight:1.5}}>{r.answer}</div>
+                    <div style={{fontSize:13,fontWeight:600,color:t.dimBright,marginTop:10,marginBottom:6}}>I can make these changes for you:</div>
+                    {r.actions.map((a,i)=><label key={i} style={{display:"flex",alignItems:"flex-start",gap:8,padding:"6px 0",fontSize:13,color:t.text,cursor:"pointer"}}>
+                      <input type="checkbox" checked={coachChecked[i]!==false} onChange={e=>{setCoachChecked(prev=>({...prev,[i]:e.target.checked}));}} style={{marginTop:2,accentColor:accent}}/>
+                      <span><strong>{a.field}</strong>: {a.from} → {a.to}</span>
+                    </label>)}
+                    <div style={{display:"flex",gap:8,marginTop:10}}>
+                      <button onClick={()=>{const checked=r.actions.filter((_,i)=>coachChecked[i]!==false);const settingsUpdate={};const planUpdate=null;checked.forEach(a=>{if(a.field==="goalMi"||a.field==="vo2")settingsUpdate[a.field]=parseFloat(a.to)||a.to;});if(Object.keys(settingsUpdate).length>0)fetch("/api/settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(settingsUpdate)}).catch(()=>{});setCoachResponse(null);setCoachChecked({});setCoachSuccess("Changes applied");setTimeout(()=>setCoachSuccess(null),3000);}} style={btnPrimary}>Confirm changes</button>
+                      <button onClick={()=>{setCoachResponse(null);setCoachChecked({});}} style={btnSecondary}>Cancel</button>
+                    </div>
+                  </div>;
+                }
+                // Fallback
+                return <div style={{...cardBase,borderLeft:`3px solid ${t.border}`,fontSize:13,color:t.dim}}>
+                  {r.answer||"No response"}
+                  <div style={{marginTop:8}}><button onClick={dismiss} style={btnSecondary}>Got it</button></div>
+                </div>;
+              })()}
+            </div>}
           </div>
         </div>}</div>
 
