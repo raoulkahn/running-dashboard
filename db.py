@@ -256,6 +256,27 @@ def db_save_run_type(activity_id, run_type):
 
 
 # ---------------------------------------------------------------------------
+# Coach rate limiting (monthly counter for guest users)
+# ---------------------------------------------------------------------------
+def db_get_coach_usage():
+    """Get current month's guest coach usage. Returns {"count": N, "month": "2026-04"} or None."""
+    return db_get_setting("coach_usage")
+
+
+def db_increment_coach_usage():
+    """Increment guest coach usage for current month. Resets if month changed. Returns new count."""
+    from datetime import datetime
+    current_month = datetime.now().strftime("%Y-%m")
+    usage = db_get_setting("coach_usage")
+    if usage and usage.get("month") == current_month:
+        new_count = usage.get("count", 0) + 1
+    else:
+        new_count = 1
+    db_set_setting("coach_usage", {"count": new_count, "month": current_month})
+    return new_count
+
+
+# ---------------------------------------------------------------------------
 # Convenience: check if DB is available
 # ---------------------------------------------------------------------------
 def is_available():

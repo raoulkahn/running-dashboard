@@ -586,6 +586,202 @@ def api_assistant_cached():
         return jsonify({"message": None, "fromCache": False})
 
 
+# ---------------------------------------------------------------------------
+# Coach Lisa — interactive AI coaching chat
+# ---------------------------------------------------------------------------
+COACH_MODEL = "claude-sonnet-4-5-20250929"
+COACH_MAX_TOKENS = 800
+COACH_GUEST_MONTHLY_CAP = 20
+
+COACH_SCHEMA = {
+    "type": "json_schema",
+    "schema": {
+        "type": "object",
+        "properties": {
+            "type": {"type": "string", "enum": ["plan_change", "advice", "agent_action"]},
+            "answer": {"type": "string"},
+            "plan": {"type": ["string", "null"]},
+            "impact": {"type": ["string", "null"]},
+            "actions": {
+                "type": ["array", "null"],
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "field": {"type": "string"},
+                        "from": {"type": "string"},
+                        "to": {"type": "string"}
+                    },
+                    "required": ["field", "from", "to"],
+                    "additionalProperties": False
+                }
+            }
+        },
+        "required": ["type", "answer", "plan", "impact", "actions"],
+        "additionalProperties": False
+    }
+}
+
+COACH_SYSTEM_PROMPT = """You are Coach Lisa, a practical AI running coach on a personal fitness dashboard.
+
+RESPONSE RULES:
+- Keep responses to 60-80 words maximum. Be concise and actionable.
+- No filler, no generic encouragement, no emojis.
+- Reference specific numbers from the context (miles, pace, weather) when relevant.
+
+RESPONSE TYPES — choose ONE based on the user's question:
+- "advice" — general questions, training tips, feedback, anything informational
+- "plan_change" — when you're suggesting a modification to the weekly run plan. Set "plan" to your suggestion and "impact" to why.
+- "agent_action" — ONLY when the user explicitly asks you to change a specific setting (weekly goal, VO2 max, plan counts, notes). Set "actions" array with what to change (field/from/to). Never use this type unless the user clearly requests a change.
+
+GUARDRAILS:
+- No medical advice. If asked about injuries or health, say "talk to a doctor."
+- Stay on topic: running, training, fitness, weather for running. Deflect anything else.
+- Never recommend more than 15 miles in a single day unless the user has recently done that distance.
+- Never suggest running in dangerous weather conditions.
+
+USER'S CURRENT CONTEXT:
+{context}"""
+
+COACH_GUEST_ADDENDUM = """
+
+IMPORTANT: You are responding to a guest user viewing a demo. Never return "agent_action" type. Always use "advice" type. Do not suggest making changes to settings, plans, or goals — just give coaching advice."""
+
+
+@app.route("/api/coach", methods=["POST"])
+def api_coach():
+    """Coach Lisa — interactive AI coaching chat endpoint."""
+    # Parse and validate input
+    data = request.get_json()
+    if not data or not data.get("message", "").strip():
+        return jsonify({"error": "Message is required"}), 400
+
+    message = data["message"].strip()[:150]  # 150-char server-side cap
+    is_admin = session.get("admin", False)
+
+    # Guest rate limiting
+    if not is_admin and db.is_available():
+        count = db.db_increment_coach_usage()
+        if count > COACH_GUEST_MONTHLY_CAP:
+            return jsonify({"error": "limit_reached"}), 429
+
+    # Build context — live for admin, demo for guests
+    if is_admin:
+        try:
+            settings = load_settings()
+            goal = settings.get("goalMi", DEFAULT_WEEKLY_GOAL)
+            activities = strava_client.get_recent_activities(count=10)
+            saved_types = load_run_types()
+            for act in activities:
+                key = str(act.get("id", ""))
+                if key in saved_types:
+                    act["runType"] = saved_types[key]
+            week = strava_client.get_current_week_summary(goal_miles=goal)
+            profile = None
+            try:
+                profile = strava_client.get_profile()
+            except Exception:
+                pass
+            plan = _load_plan()
+            weather = None
+            try:
+                weather = weather_client.get_48h_forecast(location="concord")
+            except Exception:
+                pass
+            context = assistant_client.build_context(
+                activities=activities, week_summary=week, weather=weather,
+                plan=plan, profile=profile, goal_mi=goal,
+            )
+        except Exception as e:
+            return jsonify({"error": f"Failed to build context: {str(e)}"}), 500
+    else:
+        # Demo context for guests
+        demo_activities = [
+            {"id": 1, "title": "Morning Long Run", "start_date_local": "2026-02-11T07:24:00",
+             "distance": "13.3 mi", "time": "1h 42m", "pace": "7:42 /mi", "runType": "Easy Long Run"},
+            {"id": 2, "title": "Easy Recovery Run", "start_date_local": "2026-02-10T06:15:00",
+             "distance": "8.1 mi", "time": "1h 8m", "pace": "8:24 /mi"},
+            {"id": 3, "title": "Tempo Run", "start_date_local": "2026-02-09T05:45:00",
+             "distance": "4.8 mi", "time": "35m", "pace": "7:18 /mi", "runType": "Tempo Run"},
+        ]
+        demo_week = {"totalMi": 26.2, "goalMi": 50}
+        demo_plan = [
+            {"type": "Easy Long Run", "count": 0},
+            {"type": "Easy Run", "count": 1},
+            {"type": "Interval Run", "count": 1},
+            {"type": "Tempo Run", "count": 0},
+        ]
+        demo_profile = {"name": "DJ Run", "city": "Concord", "state": "CA"}
+        weather = None
+        try:
+            weather = weather_client.get_48h_forecast(location="concord")
+        except Exception:
+            pass
+        context = assistant_client.build_context(
+            activities=demo_activities, week_summary=demo_week, weather=weather,
+            plan=demo_plan, profile=demo_profile, goal_mi=50,
+        )
+
+    # Build system prompt
+    system_prompt = COACH_SYSTEM_PROMPT.format(context=context)
+    if not is_admin:
+        system_prompt += COACH_GUEST_ADDENDUM
+
+    # Call Claude with Structured Outputs
+    if not ANTHROPIC_API_KEY:
+        return jsonify({"error": "API key not configured"}), 500
+
+    try:
+        resp = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": COACH_MODEL,
+                "max_tokens": COACH_MAX_TOKENS,
+                "temperature": 0.7,
+                "system": system_prompt,
+                "output_config": {"format": COACH_SCHEMA},
+                "messages": [{"role": "user", "content": message}],
+            },
+            timeout=20,
+        )
+        resp.raise_for_status()
+        api_data = resp.json()
+
+        # Extract and parse structured JSON response
+        raw_text = ""
+        for block in api_data.get("content", []):
+            if block.get("type") == "text":
+                raw_text += block["text"]
+
+        if not raw_text:
+            return jsonify({"error": "Empty response from Claude"}), 500
+
+        result = json.loads(raw_text)
+
+        # Guest guard: strip agent_action even if Claude returns it
+        if not is_admin and result.get("type") == "agent_action":
+            result = {
+                "type": "advice",
+                "answer": result.get("answer", ""),
+                "plan": None,
+                "impact": None,
+                "actions": None,
+            }
+
+        return jsonify(result)
+
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid response format"}), 500
+    except requests.exceptions.Timeout:
+        return jsonify({"error": "Request timed out"}), 504
+    except Exception as e:
+        return jsonify({"error": f"Coach request failed: {str(e)}"}), 500
+
+
 @app.route("/api/assistant-debug")
 def api_assistant_debug():
     """TEMP: dump raw context being sent to Claude."""
