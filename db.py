@@ -85,6 +85,9 @@ def _put(conn):
 # ---------------------------------------------------------------------------
 def init_db():
     """Create tables if they don't exist. Safe to call on every startup."""
+    if not is_available():
+        print("[db] DB disabled — running with file-based storage")
+        return False
     conn = _conn()
     if not conn:
         print("[db] No DATABASE_URL — running without database")
@@ -293,5 +296,6 @@ def db_increment_coach_usage():
 # Convenience: check if DB is available
 # ---------------------------------------------------------------------------
 def is_available():
-    """Return True if DATABASE_URL is set and pool can connect."""
-    return _get_pool() is not None
+    """Return True if DB should be used. Disabled until Render→Supabase connection is stable.
+    To re-enable: return _get_pool() is not None"""
+    return False
