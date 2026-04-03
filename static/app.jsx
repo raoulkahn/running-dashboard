@@ -432,6 +432,10 @@ function App(){
     // Load plan and notes from server
     fetch("/api/plan").then(r=>r.json()).then(d=>{if(d.plan&&Array.isArray(d.plan)&&d.plan.length>0)setPlan(d.plan);}).catch(()=>{});
     fetch("/api/notes").then(r=>r.json()).then(d=>{if(d.notes&&Array.isArray(d.notes)&&d.notes.length>0)setUserNotes(d.notes);}).catch(()=>{});
+    // Fast weekly summary from Supabase cache (stale-while-revalidate)
+    fetch("/api/weekly-summary").then(r=>r.json()).then(d=>{if(!d.error&&d.weekDays){setLiveWeekDays(d.weekDays);setLiveTotalMi(d.totalMi);setLiveGoalMi(d.goalMi);if(d.vo2!=null)setVo2(d.vo2);}}).catch(()=>{});
+    // Fast activities from Supabase cache (stale-while-revalidate)
+    fetch("/api/activities-cached").then(r=>r.json()).then(d=>{if(!d.error&&d.activities&&d.activities.length>0)setLiveActivities(d.activities);}).catch(()=>{});
     setLoadingProfile(true);
     fetch("/api/profile").then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
       .then(d=>{if(d.error)throw new Error(d.error);setLiveProfile(d);})
@@ -734,7 +738,7 @@ function App(){
         </div>}</div>
 
         {/* Weekly Goal */}
-        <div style={anim(200)}>{!demoMode&&loadingActivities?<LoadingCard t={t} rows={5} label="WEEKLY GOAL"/>:<div className="card-hover" style={crd}>
+        <div style={anim(200)}>{!demoMode&&loadingActivities&&!liveWeekDays?<LoadingCard t={t} rows={5} label="WEEKLY GOAL"/>:<div className="card-hover" style={crd}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
             <div style={{display:"flex",alignItems:"center",gap:8}}>
               <span style={lbl}>WEEKLY GOAL</span>
@@ -779,7 +783,7 @@ function App(){
         </div>}</div>
 
         {/* Activity Feed */}
-        <div ref={activitiesRef} style={anim(300)}>{!demoMode&&loadingActivities?<LoadingCard t={t} rows={5} label="RECENT ACTIVITIES"/>:<div>
+        <div ref={activitiesRef} style={anim(300)}>{!demoMode&&loadingActivities&&!liveActivities?<LoadingCard t={t} rows={5} label="RECENT ACTIVITIES"/>:<div>
           <div style={{...lbl,marginBottom:14}}>RECENT ACTIVITIES</div>
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
             {acts.map(a=><div key={a.id} className="card-hover" style={{...crd}}>

@@ -45,6 +45,8 @@ Flask backend + React frontend (single-page, inline styles).
 - **Always include clear commit messages with a description of what was built/changed** — subject line summarizes the change, body explains key details
 - **Proactively write and run unit tests when making significant changes** — ensure nothing breaks before committing
 - **When connecting two external services (e.g. Render to Supabase, Flask to Postgres), research compatibility first** — check for known issues like Python version support, IPv4/IPv6 networking, and connection string formats before writing any code
+- **Before any deploy, verify ALL required environment variables are set in the target environment** — not just new ones. Run a full audit against the codebase.
+- **Never echo sensitive values (passwords, API keys, connection strings) in output** — use placeholders like `[REDACTED]` instead
 - Feature branches for development, main stays stable for production
 
 ## Completed Phases

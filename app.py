@@ -328,12 +328,117 @@ def api_activities():
             goal_miles=settings.get("goalMi", DEFAULT_WEEKLY_GOAL)
         )
 
+        # Cache weekly summary to Supabase for instant loads
+        vo2_val = settings.get("vo2", 52)
+        _cache_weekly_summary(week, vo2_val)
+
+        # Cache activities to Supabase for instant loads (page 1 only)
+        if page == 1:
+            _cache_activities(activities)
+
         return jsonify({
             "activities": activities,
             "weekDays": week["weekDays"],
             "totalMi": week["totalMi"],
             "goalMi": week["goalMi"],
-            "vo2": settings.get("vo2", 52),
+            "vo2": vo2_val,
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ---------------------------------------------------------------------------
+# Weekly summary cache (stale-while-revalidate)
+# ---------------------------------------------------------------------------
+import time as _time
+
+def _cache_weekly_summary(week, vo2):
+    """Write weekly summary to Supabase for instant page loads."""
+    if db.is_available():
+        db.db_set_setting("weekly_summary_cache", {
+            "weekDays": week["weekDays"],
+            "totalMi": week["totalMi"],
+            "goalMi": week["goalMi"],
+            "vo2": vo2,
+            "cached_at": int(_time.time()),
+        })
+
+
+@app.route("/api/weekly-summary")
+def api_weekly_summary():
+    """Fast weekly summary — serves Supabase cache, falls back to Strava."""
+    try:
+        settings = load_settings()
+        vo2_val = settings.get("vo2", 52)
+
+        # Try Supabase cache first (instant)
+        if db.is_available():
+            cached = db.db_get_setting("weekly_summary_cache")
+            if cached and cached.get("cached_at"):
+                age = int(_time.time()) - cached["cached_at"]
+                if age < 1800:  # 30 min max staleness
+                    # Return cached data with goal from settings (user may have edited)
+                    cached["goalMi"] = settings.get("goalMi", DEFAULT_WEEKLY_GOAL)
+                    cached["vo2"] = vo2_val
+                    cached["fromCache"] = True
+                    return jsonify(cached)
+
+        # Cache miss or stale — fetch from Strava
+        week = strava_client.get_current_week_summary(
+            goal_miles=settings.get("goalMi", DEFAULT_WEEKLY_GOAL)
+        )
+        _cache_weekly_summary(week, vo2_val)
+
+        return jsonify({
+            "weekDays": week["weekDays"],
+            "totalMi": week["totalMi"],
+            "goalMi": week["goalMi"],
+            "vo2": vo2_val,
+            "fromCache": False,
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ---------------------------------------------------------------------------
+# Activities cache (stale-while-revalidate)
+# ---------------------------------------------------------------------------
+def _cache_activities(activities):
+    """Write activities to Supabase for instant page loads."""
+    if db.is_available():
+        db.db_set_setting("activities_cache", {
+            "activities": activities,
+            "cached_at": int(_time.time()),
+        })
+
+
+@app.route("/api/activities-cached")
+def api_activities_cached():
+    """Fast activities — serves Supabase cache, falls back to Strava."""
+    try:
+        # Try Supabase cache first (instant)
+        if db.is_available():
+            cached = db.db_get_setting("activities_cache")
+            if cached and cached.get("cached_at"):
+                age = int(_time.time()) - cached["cached_at"]
+                if age < 1800:  # 30 min max staleness
+                    return jsonify({
+                        "activities": cached["activities"],
+                        "fromCache": True,
+                    })
+
+        # Cache miss or stale — full Strava fetch
+        activities = strava_client.get_recent_activities(count=10)
+        saved_types = load_run_types()
+        for act in activities:
+            key = str(act.get("id", ""))
+            if key in saved_types:
+                act["runType"] = saved_types[key]
+        _cache_activities(activities)
+
+        return jsonify({
+            "activities": activities,
+            "fromCache": False,
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
