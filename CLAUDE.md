@@ -47,6 +47,12 @@ Flask backend + React frontend (single-page, inline styles).
 - **When connecting two external services (e.g. Render to Supabase, Flask to Postgres), research compatibility first** — check for known issues like Python version support, IPv4/IPv6 networking, and connection string formats before writing any code
 - **Before any deploy, verify ALL required environment variables are set in the target environment** — not just new ones. Run a full audit against the codebase.
 - **Never echo sensitive values (passwords, API keys, connection strings) in output** — use placeholders like `[REDACTED]` instead
+- **All external connections (DB, APIs) must be non-blocking and lazy-initialized** — never block app startup on an external service. Use `open=False` + `open(wait=False)` for connection pools.
+- **Every external call must have an explicit timeout of 5 seconds max** — never rely on OS defaults. Set `connect_timeout` in conninfo strings, `timeout` on pool.getconn(), and `timeout` on requests calls.
+- **Set max_idle and max_lifetime on connection pools** — connections must be recycled before the remote service drops them. Prevents stale SSL/TCP errors.
+- **App must always serve fallback content when any external service is down** — the page should never be blank. File-based fallback for DB, cached data for APIs.
+- **Before first deploy with new dependencies, verify the production runtime** — check Python version, OS, and architecture compatibility before writing code
+- **Test failure modes before deploying, not just happy path** — ask: "What happens if this service is slow, unreachable, or drops connections?"
 - Feature branches for development, main stays stable for production
 
 ## Completed Phases

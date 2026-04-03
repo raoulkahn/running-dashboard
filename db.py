@@ -25,7 +25,10 @@ def _parse_db_url(url):
     dbname = unquote(parsed.path.lstrip("/") or "postgres")
     # Escape single quotes in password for conninfo format
     password = password.replace("'", "\\'")
-    return f"host={host} port={port} user={user} password='{password}' dbname={dbname} connect_timeout=5"
+    return (
+        f"host={host} port={port} user={user} password='{password}' dbname={dbname} "
+        f"connect_timeout=5 keepalives=1 keepalives_idle=10 keepalives_interval=5 keepalives_count=3"
+    )
 
 
 def _get_pool():
@@ -44,8 +47,9 @@ def _get_pool():
             max_size=5,
             open=False,           # non-blocking — don't connect during init
             max_lifetime=120,     # recycle connections every 2 min (prevents stale SSL)
-            max_idle=60,          # close idle connections after 60s
+            max_idle=20,          # close idle connections before Supavisor does (~30s)
             reconnect_timeout=5,  # don't spend forever retrying failed connections
+            check=ConnectionPool.check_connection,  # validate connections before handing out
         )
         _pool.open(wait=False)    # start pool in background, don't block
         return _pool
